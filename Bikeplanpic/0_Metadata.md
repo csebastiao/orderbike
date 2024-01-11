@@ -1,0 +1,17 @@
+- Auckland_datascreen: "Current Strategic Cycle and Micromobility Network". Dark Green is Regional, Green is Major, Light Green is Connector. Can download shapefile. From https://mahere.at.govt.nz/futureconnect/ .
+- Berlin_picture: Posted in 2021, end date is 2030. From https://www.morgenpost.de/redaktion/infografik/#/grafik/615f125b9c181a632464b7d3 .
+- Glasgow_picture_1: Official action plan 2022-2031. From https://www.glasgow.gov.uk/councillorsandcommittees/submissiondocuments.asp?submissionid=102292 .
+- Glasgow_picture_2: Same project as Glasgow_picture_1. Sustainable transport corridors are roads with increased bus services.
+- Lyon_picture: Intercommunal bicycle network, for larger metropolis. End date is 2026. From https://avelo.grandlyon.com/se-deplacer-a-velo/les-voies-lyonnaises .
+- Madrid_picture_1: Plan made by political party. From https://masmadrid.org/red-bici-2023/ .
+- Madrid_datascreen: Plan made in 2014 with actual and projected for 2025, green and orange protected, magenta unprotected but preferential, blue suited to bicycle use. Can download shapefile. From https://datos.madrid.es/sites/v/index.jsp?vgnextoid=325e827b864f4410VgnVCM2000000c205a0aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD .
+- Milan_picture: Posted in 2021, envisioning end in 2035. From https://www.cittametropolitana.mi.it/portale/news/infrastrutture/Cambio-il-Progetto-Biciplan/ .
+- Paris_datascreen: Plan 2021-2026. Green is existing red is projected. Can download shapefile. From https://opendata.paris.fr/explore/dataset/plan-velo-2026/map/?location=12,48.85884,2.34798&basemap=stamen.toner .
+- Paris_picture: Same project as Paris_datascreen, initial visual. From https://www.paris.fr/pages/un-nouveau-plan-velo-pour-une-ville-100-cyclable-19554 .
+- Turin_picture_1: Plan from 2013, no end date found yet.
+- Turin_picture_2: Same project as Turin_picture_1, bike lane are numbered and separated. Dotted lines are projected, solid lines are existing.
+- Vienna_picture_1: Plan made by activists. From https://twitter.com/platzfuerwien/status/1382326243757076480 .
+- Vienna_picture_2: Plan made by activists, specifically for COVID-bikelane. From https://platzfuer.wien/pressematerial/ .
+- Zurich_picture_1: Picture from journal. From https://www.nzz.ch/zuerich/verkehrsrichtplan-die-stadt-zuerich-legt-sich-mit-dem-kanton-an-ld.1633196 .
+- Zurich_picture_2: Picture from municipality, legend in Zurich_legend. Status from 2023, no end date found yet. From https://www.stadt-zuerich.ch/site/velo/de/index/die-velovorzugsrouten.html#das_netz_der_velovorzugsrouteninzuerich .
+- 
