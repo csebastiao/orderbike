@@ -1,17 +1,24 @@
-- Auckland_datascreen: "Current Strategic Cycle and Micromobility Network". Dark Green is Regional, Green is Major, Light Green is Connector. Can download shapefile. From https://mahere.at.govt.nz/futureconnect/ .
+- Auckland_datascreen: "Current Strategic Cycle and Micromobility Network". Dark Green is Regional, Green is Major, Light Green is Connector. From https://mahere.at.govt.nz/futureconnect/ .
 - Berlin_picture: Posted in 2021, end date is 2030. From https://www.morgenpost.de/redaktion/infografik/#/grafik/615f125b9c181a632464b7d3 .
+- Boston_picture: From https://www.cityofboston.gov/images_documents/Boston%20Bike%20Network%20Plan%2C%20Fall%202013_FINAL_tcm3-40525.pdf .
 - Glasgow_picture_1: Official action plan 2022-2031. From https://www.glasgow.gov.uk/councillorsandcommittees/submissiondocuments.asp?submissionid=102292 .
 - Glasgow_picture_2: Same project as Glasgow_picture_1. Sustainable transport corridors are roads with increased bus services.
+- London_datascreen: Black is proposed, other colors are existing. From https://tfl.gov.uk/maps/cycle .
+- London_picutre: From https://content.tfl.gov.uk/cycling-action-plan.pdf .
+- Lyon_datascreen: Plan 2009-2020. Can download shapefile. From https://data.grandlyon.com/portail/fr/jeux-de-donnees/plan-velo-metropole-lyon/donnees
 - Lyon_picture: Intercommunal bicycle network, for larger metropolis. End date is 2026. From https://avelo.grandlyon.com/se-deplacer-a-velo/les-voies-lyonnaises .
 - Madrid_picture_1: Plan made by political party. From https://masmadrid.org/red-bici-2023/ .
 - Madrid_datascreen: Plan made in 2014 with actual and projected for 2025, green and orange protected, magenta unprotected but preferential, blue suited to bicycle use. Can download shapefile. From https://datos.madrid.es/sites/v/index.jsp?vgnextoid=325e827b864f4410VgnVCM2000000c205a0aRCRD&vgnextchannel=374512b9ace9f310VgnVCM100000171f5a0aRCRD .
 - Milan_picture: Posted in 2021, envisioning end in 2035. From https://www.cittametropolitana.mi.it/portale/news/infrastrutture/Cambio-il-Progetto-Biciplan/ .
 - Paris_datascreen: Plan 2021-2026. Green is existing red is projected. Can download shapefile. From https://opendata.paris.fr/explore/dataset/plan-velo-2026/map/?location=12,48.85884,2.34798&basemap=stamen.toner .
 - Paris_picture: Same project as Paris_datascreen, initial visual. From https://www.paris.fr/pages/un-nouveau-plan-velo-pour-une-ville-100-cyclable-19554 .
+- Portland_picture_1: Low_res, comparison of bicycle networks of Portland. From Exhibit A https://www.portland.gov/policies/transportation/transportation-options/trn-607-portland-bicycle-plan-2030 .
+- Portland_picture_2: Dotted are future to 2030, solid are existing in 2010. From Exhibit B https://www.portland.gov/policies/transportation/transportation-options/trn-607-portland-bicycle-plan-2030 .
+- Rome_datascreen: Orange is existing, Green and Yellow are projected. From https://romamobilita.it/it/muoversiaroma/ciclabilita?s=09 .
+- Sofia_datascreen: Light blue is 2019-2020, Blue is 2021-2026, Light Green is 2026-2035. Other colors are the already built network. Can download shapefile. From https://gis.sofiaplan.bg/arcgis/apps/webappviewer/index.html?id=6ea9389f9b4f4345bc95721d809efc31 .
 - Turin_picture_1: Plan from 2013, no end date found yet.
 - Turin_picture_2: Same project as Turin_picture_1, bike lane are numbered and separated. Dotted lines are projected, solid lines are existing.
 - Vienna_picture_1: Plan made by activists. From https://twitter.com/platzfuerwien/status/1382326243757076480 .
 - Vienna_picture_2: Plan made by activists, specifically for COVID-bikelane. From https://platzfuer.wien/pressematerial/ .
 - Zurich_picture_1: Picture from journal. From https://www.nzz.ch/zuerich/verkehrsrichtplan-die-stadt-zuerich-legt-sich-mit-dem-kanton-an-ld.1633196 .
 - Zurich_picture_2: Picture from municipality, legend in Zurich_legend. Status from 2023, no end date found yet. From https://www.stadt-zuerich.ch/site/velo/de/index/die-velovorzugsrouten.html#das_netz_der_velovorzugsrouteninzuerich .
-- 
