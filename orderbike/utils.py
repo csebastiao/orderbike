@@ -5,16 +5,181 @@ simplify the graph by removing interstitial nodes and by going from a
 multidigraph to a graph.
 """
 
-
-import itertools
 import numpy as np
-import geopandas as gpd
 import shapely
 from shapely.geometry import LineString
 from shapely.geometry import Point
 import networkx as nx
 from haversine import haversine
 from haversine import Unit
+import osmnx as ox
+
+def get_every_edge_attributes(G, ignore_key=[]):
+    """
+    Get all the possible value for all attributes for edges of the graph
+    except the ones on a given ignore list.
+    See also get_specific_edge_attributes
+
+    Parameters
+    ----------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph where we want to simplify an attribute.
+
+    ignore_key : list or singleton, optional
+        Key we want to ignore. The default is [].
+
+    Returns
+    -------
+    attr_dict : dict
+        Dictionary of every possible values for every attributes except the
+        ignored ones.
+
+    """
+    attr_dict = dict()
+    for edge in G.edges:
+        for attr in list(G.edges[edge].keys()):
+            if isinstance(ignore_key, list):
+                if attr in ignore_key:
+                    pass
+                elif attr in attr_dict:
+                    if G.edges[edge][attr] in attr_dict[attr]:
+                        pass
+                    else:
+                        attr_dict[attr].append(G.edges[edge][attr])
+                else:
+                    attr_dict[attr] = [G.edges[edge][attr]]
+            else:
+                if attr is ignore_key:
+                    pass
+                elif attr in attr_dict:
+                    if G.edges[edge][attr] in attr_dict[attr]:
+                        pass
+                    else:
+                        attr_dict[attr].append(G.edges[edge][attr])
+                else:
+                    attr_dict[attr] = [G.edges[edge][attr]]
+    return attr_dict
+
+
+def get_specific_edge_attributes(G, take_key_list):
+    """
+    Get all the possible value for specific attributes for edges of the graph.
+    See also get_every_edge_attributes
+
+    Parameters
+    ----------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph where we want to simplify an attribute.
+    take_key_list : list of str or str
+        List of the key we want to get.
+
+    Returns
+    -------
+    attr_dict : dict
+        Dictionary of every possible values for specified attributes.
+
+    """
+    attr_dict = dict()
+    if isinstance(take_key_list, list):
+        for key in take_key_list:
+            attr_dict[key] = []
+        for edge in G.edges:
+            for attr in list(G.edges[edge].keys()):
+                if attr in take_key_list:
+                    if G.edges[edge][attr] in attr_dict[attr]:
+                        pass
+                    else:
+                        attr_dict[attr].append(G.edges[edge][attr])
+    else:
+        attr_dict[take_key_list] = []
+        for edge in G.edges:
+            if take_key_list in list(G.edges[edge].keys()):
+                if G.edges[edge][take_key_list] in attr_dict[take_key_list]:
+                    pass
+                else:
+                    attr_dict[take_key_list].append(
+                        G.edges[edge][take_key_list])
+    return attr_dict
+
+
+def simplify_edge_attribute_name(G, key, name_list, simple_name):
+    """
+    Simplify an arbitrary list of name values for a given key into one.
+
+    Parameters
+    ----------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph where we want to simplify an attribute.
+    key : str
+        Name of the edges' attributes.
+    name_list : list
+        List of values for the given attribute we want to merge into one.
+    simple_name : str
+        Name for the fusion of every values in the given list.
+
+    Returns
+    -------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph with the modified attribute.
+
+    """
+    G = G.copy()
+    for edge in G.edges:
+        if key in list(G.edges[edge].keys()):
+            if G.edges[edge][key] in name_list:
+                G.edges[edge][key] = simple_name
+    return G
+
+
+def add_edge_attribute(G, attr_dict, name, bool_response=True):
+    """
+    Add an edge attribute where the value are binary bool based on
+    whether the edge have a specific value for a given attribute,
+    given as a dictionary.
+
+    Parameters
+    ----------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph on which we want to add an attribute.
+    attr_dict : dict
+        Dictionary where the key are the key of the edges' attributes
+        and values are the values of those attributes that we want to
+        take into account.
+    name : str
+        Name of the new attribute.
+    bool_response : bool, optional
+        Bool response if we find one of the values on one of the
+        attributes of the edges from the dictionary.
+        The default is True.
+
+    Raises
+    ------
+    NameError
+        Raised if the name is already an attribute of an edge
+        of the graph, in order to avoid unintended mix.
+
+    Returns
+    -------
+    G : networkx Graph/DiGraph/MultiGraph/MultiDiGraph/...
+        Graph with the new binary attribute.
+
+    """
+    G = G.copy()
+    for edge in G.edges:
+        if name in G.edges[edge]:
+            raise NameError(
+                "New attribute {} already in edge {}, use a new name".format(
+                    name, edge)
+                )
+        for key in list(attr_dict.keys()):
+            if key in list(G.edges[edge].keys()):
+                if G.edges[edge][key] in attr_dict[key]:
+                    G.edges[edge][name] = bool_response
+                    break # otherwise next key can replace the value
+                else:
+                    G.edges[edge][name] = not bool_response
+    return G
+
 
 
 # New function
@@ -277,7 +442,7 @@ def get_undirected(G, attributes=None):
 
     # increment parallel edges' keys so we don't retain only one edge of sets
     # of true parallel edges when we convert from MultiDiGraph to MultiGraph
-    G = _update_edge_keys(G)
+    G = ox._update_edge_keys(G)
 
     # convert MultiDiGraph to MultiGraph, retaining edges in both directions
     # of parallel edges and self-loops for now
@@ -308,150 +473,6 @@ def get_undirected(G, attributes=None):
 
     H.remove_edges_from(duplicate_edges)
     return H
-
-# Same function
-def _update_edge_keys(G):
-    """
-    Increment key of one edge of parallel edges that differ in geometry.
-
-    For example, two streets from u to v that bow away from each other as
-    separate streets, rather than opposite direction edges of a single street.
-    Increment one of these edge's keys so that they do not match across u, v,
-    k or v, u, k so we can add both to an undirected MultiGraph.
-
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        input graph
-
-    Returns
-    -------
-    G : networkx.MultiDiGraph
-    """
-    # identify all the edges that are duplicates based on a sorted combination
-    # of their origin, destination, and key. that is, edge uv will match edge vu
-    # as a duplicate, but only if they have the same key
-    edges = graph_to_gdfs(G, nodes=False, fill_edge_geometry=False)
-    edges["uvk"] = ["_".join(sorted([str(u), str(v)]) + [str(k)]) for u, v, k in edges.index]
-    mask = edges["uvk"].duplicated(keep=False)
-    dupes = edges[mask].dropna(subset=["geometry"])
-
-    different_streets = []
-    groups = dupes[["geometry", "uvk"]].groupby("uvk")
-
-    # for each group of duplicate edges
-    for _, group in groups:
-
-        # for each pair of edges within this group
-        for geom1, geom2 in itertools.combinations(group["geometry"], 2):
-
-            # if they don't have the same geometry, flag them as different
-            # streets: flag edge uvk, but not edge vuk, otherwise we would
-            # increment both their keys and they'll still duplicate each other
-            if not _is_same_geometry(geom1, geom2):
-                different_streets.append(group.index[0])
-
-    # for each unique different street, increment its key to make it unique
-    for u, v, k in set(different_streets):
-        new_key = max(list(G[u][v]) + list(G[v][u])) + 1
-        G.add_edge(u, v, key=new_key, **G.get_edge_data(u, v, k))
-        G.remove_edge(u, v, key=k)
-
-    return G
-
-# Same function
-def graph_to_gdfs(G, nodes=True, edges=True, node_geometry=True,
-                  fill_edge_geometry=True):
-    """
-    Convert a MultiDiGraph to node and/or edge GeoDataFrames.
-
-    This function is the inverse of `graph_from_gdfs`.
-
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        input graph
-    nodes : bool
-        if True, convert graph nodes to a GeoDataFrame and return it
-    edges : bool
-        if True, convert graph edges to a GeoDataFrame and return it
-    node_geometry : bool
-        if True, create a geometry column from node x and y attributes
-    fill_edge_geometry : bool
-        if True, fill in missing edge geometry fields using nodes u and v
-
-    Returns
-    -------
-    geopandas.GeoDataFrame or tuple
-        gdf_nodes or gdf_edges or tuple of (gdf_nodes, gdf_edges). gdf_nodes
-        is indexed by osmid and gdf_edges is multi-indexed by u, v, key
-        following normal MultiDiGraph structure.
-    """
-    crs = G.graph["crs"]
-
-    if nodes:
-
-        if not G.nodes:  # pragma: no cover
-            raise ValueError("graph contains no nodes")
-
-        nodes, data = zip(*G.nodes(data=True))
-
-        if node_geometry:
-            # convert node x/y attributes to Points for geometry column
-            geom = (Point(d["x"], d["y"]) for d in data)
-            gdf_nodes = gpd.GeoDataFrame(data, index=nodes, crs=crs,
-                                         geometry=list(geom))
-        else:
-            gdf_nodes = gpd.GeoDataFrame(data, index=nodes)
-
-        gdf_nodes.index.rename("osmid", inplace=True)
-
-    if edges:
-
-        if not G.edges:  # pragma: no cover
-            raise ValueError("graph contains no edges")
-
-        u, v, k, data = zip(*G.edges(keys=True, data=True))
-
-        if fill_edge_geometry:
-
-            # subroutine to get geometry for every edge: if edge already has
-            # geometry return it, otherwise create it using the incident nodes
-            x_lookup = nx.get_node_attributes(G, "x")
-            y_lookup = nx.get_node_attributes(G, "y")
-
-            def make_geom(u, v, data, x=x_lookup, y=y_lookup):
-                if "geometry" in data:
-                    return data["geometry"]
-                else:
-                    return LineString((Point((x[u], y[u])),
-                                       Point((x[v], y[v]))))
-
-            geom = map(make_geom, u, v, data)
-            gdf_edges = gpd.GeoDataFrame(data, crs=crs, geometry=list(geom))
-
-        else:
-            gdf_edges = gpd.GeoDataFrame(data)
-            if "geometry" not in gdf_edges.columns:
-                # if no edges have a geometry attribute, create null column
-                gdf_edges["geometry"] = np.nan
-            gdf_edges.set_geometry("geometry")
-            gdf_edges.crs = crs
-
-        # add u, v, key attributes as index
-        gdf_edges["u"] = u
-        gdf_edges["v"] = v
-        gdf_edges["key"] = k
-        gdf_edges.set_index(["u", "v", "key"], inplace=True)
-
-    if nodes and edges:
-        return gdf_nodes, gdf_edges
-    elif nodes:
-        return gdf_nodes
-    elif edges:
-        return gdf_edges
-    else:  # pragma: no cover
-        raise ValueError("you must request nodes or edges or both")
 
 # Modified function
 def _is_duplicate_edge(data1, data2, attributes=None):
@@ -660,7 +681,7 @@ def momepy_simplify_graph(G, attributes=None,
         wccs = nx.weakly_connected_components(G)
         nodes_in_rings = set()
         for wcc in wccs:
-            if not any(_is_endpoint(G, n) for n in wcc):
+            if not any(ox._is_endpoint(G, n) for n in wcc):
                 nodes_in_rings.update(wcc)
         G.remove_nodes_from(nodes_in_rings)
 
