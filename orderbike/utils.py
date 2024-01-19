@@ -502,7 +502,7 @@ def _is_duplicate_edge(data1, data2, attributes=None):
 
         # if both edges have geometry attributes and they match each other
         if ("geometry" in data1) and ("geometry" in data2):
-            if _is_same_geometry(data1["geometry"], data2["geometry"]):
+            if ox._is_same_geometry(data1["geometry"], data2["geometry"]):
                 is_dupe = True
 
         # if neither edge has a geometry attribute
@@ -528,33 +528,6 @@ def _is_duplicate_edge(data1, data2, attributes=None):
 
     return is_dupe
 
-# Same function
-def _is_same_geometry(ls1, ls2):
-    """
-    Determine if two LineString geometries are the same (in either direction).
-
-    Check both the normal and reversed orders of their constituent points.
-
-    Parameters
-    ----------
-    ls1 : shapely.geometry.LineString
-        the first LineString geometry
-    ls2 : shapely.geometry.LineString
-        the second LineString geometry
-
-    Returns
-    -------
-    bool
-    """
-    # extract coordinates from each LineString geometry
-    geom1 = [tuple(coords) for coords in ls1.xy]
-    geom2 = [tuple(coords) for coords in ls2.xy]
-
-    # reverse the first LineString's coordinates' direction
-    geom1_r = [tuple(reversed(coords)) for coords in ls1.xy]
-
-    # if first geometry matches second in either direction, return True
-    return geom1 == geom2 or geom1_r == geom2
 
 # Modified function
 def momepy_simplify_graph(G, attributes=None,
