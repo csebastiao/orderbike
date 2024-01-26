@@ -1,6 +1,8 @@
+- Atlanta_picture: Status is fron 2018. From https://doi.org/10.1016/j.jcmr.2024.100015 .
 - Auckland_datascreen: "Current Strategic Cycle and Micromobility Network". Dark Green is Regional, Green is Major, Light Green is Connector. From https://mahere.at.govt.nz/futureconnect/ .
 - Berlin_picture: Posted in 2021, end date is 2030. From https://www.morgenpost.de/redaktion/infografik/#/grafik/615f125b9c181a632464b7d3 .
 - Boston_picture: From https://www.cityofboston.gov/images_documents/Boston%20Bike%20Network%20Plan%2C%20Fall%202013_FINAL_tcm3-40525.pdf .
+- Brandenburg_datascreen: Plan from 2024 for ending in 2030. From https://brandenburg.adfc.de/radnetz-brandenburg .
 - Glasgow_picture_1: Official action plan 2022-2031. From https://www.glasgow.gov.uk/councillorsandcommittees/submissiondocuments.asp?submissionid=102292 .
 - Glasgow_picture_2: Same project as Glasgow_picture_1. Sustainable transport corridors are roads with increased bus services.
 - London_datascreen: Black is proposed, other colors are existing. From https://tfl.gov.uk/maps/cycle .
