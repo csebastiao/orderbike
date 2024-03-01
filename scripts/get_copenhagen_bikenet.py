@@ -63,13 +63,14 @@ protected_dict["bicycle_road"] = "yes"
 # Add as boolean attribute for all values and simplify the network with it
 G = add_edge_attribute(G, protected_dict, "protected_bicycling")
 G = ox.simplify_graph(G, endpoint_attrs=["protected_bicycling"])
-ox.save_graphml(G, filepath="./data/processed/cop_simp_bikenet.graphml")
-ec = ox.plot.get_edge_colors_by_attr(G, attr="protected_bicycling", cmap="PRGn")
+# Large file so avoid putting it on GitHub by putting it into ignored folder
+ox.save_graphml(G, filepath="./data/processed/large_files/cop_simp_bikenet.graphml")
+ec = ox.plot.get_edge_colors_by_attr(G, attr="protected_bicycling", cmap="brg")
 ox.plot_graph(
     G,
     bgcolor="white",
     node_color="black",
-    node_size=3,
+    node_size=0.5,
     edge_color=ec,
     edge_linewidth=0.5,
     save=True,
