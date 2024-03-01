@@ -1,0 +1,6 @@
+pre-commit==3.6.2
+pytest==8.0.2
+osmnx==1.9.1
+tqdm==4.66.2
+ipykernel==6.29.3
+haversine==2.8.1

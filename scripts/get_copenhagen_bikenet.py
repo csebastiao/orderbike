@@ -63,14 +63,4 @@ protected_dict["bicycle_road"] = "yes"
 # Add as boolean attribute for all values and simplify the network with it
 G = add_edge_attribute(G, protected_dict, "protected_bicycling")
 G = ox.simplify_graph(G, attributes=["protected_bicycling"])
-ec = ox.plot.get_edge_colors_by_attr(G, "protected_bicycling", cmap="bwr")
-# Red is protected, blue unprotected
-ox.plot_graph(
-    G,
-    figsize=(12, 8),
-    bgcolor="w",
-    node_color="black",
-    node_size=10,
-    edge_color=ec,
-    edge_linewidth=1.5,
-)
+ox.save_graphml(G)
