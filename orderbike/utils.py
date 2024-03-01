@@ -5,12 +5,12 @@ simplify the graph by removing interstitial nodes and by going from a
 multidigraph to a graph.
 """
 
-from shapely.geometry import LineString
-from networkx import Graph
-from osmnx import get_undirected
 import numpy as np
-from sklearn.metrics import auc
 from haversine import haversine, haversine_vector
+from networkx import Graph, get_node_attributes
+from osmnx import get_undirected
+from shapely.geometry import LineString
+from sklearn.metrics import auc
 
 
 def dist(v1, v2):
@@ -143,6 +143,13 @@ def add_edge_attr_from_dict(G, attr_dict, name):
                     break
                 G.edges[edge][name] = 0
     return G
+
+
+def get_node_positions(G):
+    """Find all node longitude and latitude from the graph G and put them into a numpy array."""
+    lon = [val for key, val in sorted(get_node_attributes(G, "x").items())]
+    lat = [val for key, val in sorted(get_node_attributes(G, "y").items())]
+    return np.transpose(np.array([lat, lon]))
 
 
 def multidigraph_to_graph(G):

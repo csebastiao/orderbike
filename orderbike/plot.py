@@ -6,10 +6,12 @@ Functions to visualize results of the growth of a graph.
 
 import os
 import pickle
-import matplotlib as mpl
+
 import cv2
+import matplotlib as mpl
 import networkx as nx
 import osmnx as ox
+
 from orderbike import utils
 
 

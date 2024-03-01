@@ -3,17 +3,19 @@
 Functions to make subtractive or additive growth of a graph.
 """
 
-import os
 import cProfile
-import pstats
 import io
-import tqdm
+import os
 import pickle
-import numpy as np
+import pstats
 import random
+
 import networkx as nx
+import numpy as np
 import pyproj
 import shapely
+import tqdm
+
 from orderbike import metrics, utils
 
 
@@ -833,7 +835,7 @@ def optimize_additive_growth(
         bef_area = shapely.ops.unary_union(list(geom.values())).area
         cov_hist = [bef_area]
         # Directness
-        dm = metrics.get_directness_matrix_networkx(G.edge_subgraph(actual_edges))
+        dm = metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
         dir_hist = [metrics.directness_from_matrix(dm)]
     else:
         # For now, build longest edge first
@@ -852,7 +854,7 @@ def optimize_additive_growth(
             .buffer(buff_size)
             .area
         ]
-        dm = metrics.get_directness_matrix_networkx(G.edge_subgraph(actual_edges))
+        dm = metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
         dir_hist = [metrics.directness_from_matrix(dm)]
     if metric_optimized == "directness":
         for i in tqdm.tqdm(range(len(edgelist))):
@@ -1018,7 +1020,7 @@ def _make_additive_changes(
     # Directness
     dir_hist.append(
         metrics.directness_from_matrix(
-            metrics.get_directness_matrix_networkx(G.edge_subgraph(actual_edges))
+            metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
         )
     )
     return actual_edges, edgelist, geom, c_hist, cov_hist, dir_hist
@@ -1072,7 +1074,7 @@ def directness_additive_step(G, actual_edges, edgelist, keep_connected=False):
             ) and (len(sorted(nx.connected_components(H), key=len)[0]) > 1):
                 pass
             else:
-                dm = metrics.get_directness_matrix_networkx(H)
+                dm = metrics.get_directness_matrix(H)
                 batch_m.append(metrics.directness_from_matrix(dm))
                 batch_choice.append(edge)
     else:
@@ -1080,7 +1082,7 @@ def directness_additive_step(G, actual_edges, edgelist, keep_connected=False):
             temp_edges = actual_edges.copy()
             temp_edges.append(edge)
             H = G.edge_subgraph(actual_edges).copy()  # See above
-            dm = metrics.get_directness_matrix_networkx(H)
+            dm = metrics.get_directness_matrix(H)
             batch_m.append(metrics.directness_from_matrix(dm))
             batch_choice.append(edge)
     new_m = max(batch_m)
@@ -1407,9 +1409,7 @@ def random_growth(
             cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
             dir_hist.append(
                 metrics.directness_from_matrix(
-                    metrics.get_directness_matrix_networkx(
-                        G.edge_subgraph(actual_edges)
-                    )
+                    metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                 )
             )
     else:
@@ -1425,9 +1425,7 @@ def random_growth(
             cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
             dir_hist.append(
                 metrics.directness_from_matrix(
-                    metrics.get_directness_matrix_networkx(
-                        G.edge_subgraph(actual_edges)
-                    )
+                    metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                 )
             )
     if order == "subtractive":
@@ -1437,7 +1435,7 @@ def random_growth(
             ).buffer(buff_size)
         cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
         dir_hist.append(
-            metrics.directness_from_matrix(metrics.get_directness_matrix_networkx(G))
+            metrics.directness_from_matrix(metrics.get_directness_matrix(G))
         )
     if built is True:  # if something is built we can remove every other edges
         n_sub_iter = range(len(edgelist))
@@ -1475,9 +1473,7 @@ def random_growth(
                 geom.pop(choice)
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
-                    metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(G)
-                    )
+                    metrics.directness_from_matrix(metrics.get_directness_matrix(G))
                 )
         elif order == "additive":
             for i in tqdm.tqdm(range(len(edgelist))):
@@ -1504,9 +1500,7 @@ def random_growth(
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
                     metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(
-                            G.edge_subgraph(actual_edges)
-                        )
+                        metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                     )
                 )
     else:
@@ -1520,9 +1514,7 @@ def random_growth(
                 geom.pop(choice)
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
-                    metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(G)
-                    )
+                    metrics.directness_from_matrix(metrics.get_directness_matrix(G))
                 )
         elif order == "additive":
             for i in tqdm.tqdm(range(len(edgelist))):
@@ -1536,9 +1528,7 @@ def random_growth(
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
                     metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(
-                            G.edge_subgraph(actual_edges)
-                        )
+                        metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                     )
                 )
     if save_metrics is True:
@@ -1671,9 +1661,7 @@ def betweenness_growth(
             cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
             dir_hist.append(
                 metrics.directness_from_matrix(
-                    metrics.get_directness_matrix_networkx(
-                        G.edge_subgraph(actual_edges)
-                    )
+                    metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                 )
             )
     else:
@@ -1690,9 +1678,7 @@ def betweenness_growth(
             cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
             dir_hist.append(
                 metrics.directness_from_matrix(
-                    metrics.get_directness_matrix_networkx(
-                        G.edge_subgraph(actual_edges)
-                    )
+                    metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                 )
             )
     if order == "subtractive":
@@ -1702,7 +1688,7 @@ def betweenness_growth(
             ).buffer(buff_size)
         cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
         dir_hist.append(
-            metrics.directness_from_matrix(metrics.get_directness_matrix_networkx(G))
+            metrics.directness_from_matrix(metrics.get_directness_matrix(G))
         )
     else:
         edge_order.reverse()
@@ -1745,9 +1731,7 @@ def betweenness_growth(
                 geom.pop(edge)
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
-                    metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(G)
-                    )
+                    metrics.directness_from_matrix(metrics.get_directness_matrix(G))
                 )
         elif order == "additive":
             while len(edge_order) > 0:
@@ -1775,9 +1759,7 @@ def betweenness_growth(
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
                     metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(
-                            G.edge_subgraph(actual_edges)
-                        )
+                        metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                     )
                 )
     else:
@@ -1789,9 +1771,7 @@ def betweenness_growth(
                 geom.pop(edge)
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
-                    metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(G)
-                    )
+                    metrics.directness_from_matrix(metrics.get_directness_matrix(G))
                 )
         elif order == "additive":
             for edge in tqdm.tqdm(edge_order):
@@ -1803,9 +1783,7 @@ def betweenness_growth(
                 cov_hist.append(shapely.ops.unary_union(list(geom.values())).area)
                 dir_hist.append(
                     metrics.directness_from_matrix(
-                        metrics.get_directness_matrix_networkx(
-                            G.edge_subgraph(actual_edges)
-                        )
+                        metrics.get_directness_matrix(G.edge_subgraph(actual_edges))
                     )
                 )
     if save_metrics is True:
