@@ -8,7 +8,7 @@ import networkx as nx
 import random
 import itertools
 import numpy as np
-from blp.utils import get_node_positions, dist, dist_vector
+from orderbike.utils import get_node_positions, dist, dist_vector
 
 
 def get_edgelist_shortest_path(G):
