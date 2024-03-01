@@ -227,3 +227,7 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,macos
 
+## Custom add
+cache
+scripts/cache/
+data/processed/large_files/
