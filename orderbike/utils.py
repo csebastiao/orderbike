@@ -166,6 +166,7 @@ def multidigraph_to_graph(G):
     G : networkx.Graph
         Undirected graph made from the initial MultiDiGraph.
     """
+    G = G.copy()
     G = get_undirected(G)
     initial_node_list = list(G.nodes())  # to avoid issue with changes
     for node in initial_node_list:

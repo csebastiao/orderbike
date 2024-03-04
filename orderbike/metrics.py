@@ -68,11 +68,10 @@ def get_shortest_network_path_matrix(G):
             nx.all_pairs_dijkstra_path_length(G, weight="length")
         ).items()
     ):
-        shortest_matrix.append(
+        shortest_matrix.append(  # add 0 values for nodes not in the same components
             [val for key, val in sorted(_fill_dict(dic, node_list).items())]
         )
-    shortest_matrix = np.array(shortest_matrix)
-    return shortest_matrix
+    return np.array(shortest_matrix)
 
 
 def _fill_dict(dictionary, n_list):
@@ -106,17 +105,16 @@ def get_euclidean_distance_matrix(G, lonlat=True):
 
     """
     pos_list = get_node_positions(G)
-    euclidean_matrix = []
     if lonlat:
-        for pos in pos_list:
-            euclidean_matrix.append(dist_vector([pos] * len(pos_list), pos_list))
+        euclidean_matrix = [
+            dist_vector([pos] * len(pos_list), pos_list) for pos in pos_list
+        ]
     else:
-        for pos in pos_list:
-            euclidean_matrix.append(
-                [np.linalg.norm(pos - other_pos) for other_pos in pos_list]
-            )
-    euclidean_matrix = np.array(euclidean_matrix)
-    return euclidean_matrix
+        euclidean_matrix = [
+            [np.linalg.norm(pos - other_pos) for other_pos in pos_list]
+            for pos in pos_list
+        ]
+    return np.array(euclidean_matrix)
 
 
 def avoid_zerodiv_matrix(num_mat, den_mat, separate=False):
@@ -180,9 +178,3 @@ def directness_from_matrix(mat):
 
     """
     return np.sum(mat) / np.count_nonzero(mat)
-
-
-def remove_matrix_node(mat, ind):
-    """Return directness matrix where we removed one node (row and column)"""
-    # Equivalent in pandas : df.loc[df.columns != ind, df.columns != ind]
-    return np.delete(np.delete(mat, ind, 0), ind, 1)
