@@ -35,12 +35,12 @@ def get_directness_matrix(G, lonlat=True):
         distance and the euclidean distance
 
     """
-    shortest_matrix = get_shortest_network_path_matrix(G)
+    shortest_matrix = get_shortest_network_path_length_matrix(G)
     euclidean_matrix = get_euclidean_distance_matrix(G, lonlat=lonlat)
     return avoid_zerodiv_matrix(euclidean_matrix, shortest_matrix)
 
 
-def get_shortest_network_path_matrix(G):
+def get_shortest_network_path_length_matrix(G):
     """
     Return a matrix of the shortest path on the network between every
     pairs of nodes in the graph G. The matrix is a square matrix (N,N),
