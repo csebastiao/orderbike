@@ -10,7 +10,7 @@ import shapely
 from orderbike.utils import dist_vector, get_node_positions
 
 
-def get_coverage(G, edge, geom={}, old_area=0, buff_size=200, order="subtractive"):
+def get_coverage(G, edge, geom={}, actual_area=0, buff_size=200, order="subtractive"):
     """Get coverage of the graph G. Works with growth.dynamic_growth function. See prefunc_coverage."""
     geom_new = geom.copy()
     if order == "subtractive":
@@ -19,19 +19,19 @@ def get_coverage(G, edge, geom={}, old_area=0, buff_size=200, order="subtractive
         geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
     new_area = shapely.ops.unary_union(geom_new).area
     if order == "subtractive":
-        return (old_area - new_area) / G.edges[edge]["length"]
+        return (actual_area - new_area) / G.edges[edge]["length"]
     elif order == "additive":
-        return (new_area - old_area) / G.edges[edge]["length"]
+        return (new_area - actual_area) / G.edges[edge]["length"]
     else:
         raise ValueError(
             f"Incorrect value {order} for order, please choose subtractive or additive."
         )
 
 
-def prefunc_coverage(G, buff_size=200):
-    """Pre-compute the dictionary of buffered geometries of the edges for the coverage growth optimization."""
+def prefunc_coverage(G, order=None, buff_size=200):
+    """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
     geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
-    return {"G": G, "geom": geom}
+    return {"geom": geom, "actual_area": shapely.ops.unary_union(geom).area}
 
 
 def get_directness(G, edge):
