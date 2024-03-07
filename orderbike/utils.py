@@ -36,76 +36,8 @@ def dist_vector(v1_list, v2_list):
     return haversine_vector(v1_list, v2_list, unit="m")
 
 
-def create_node_index(G, revert=False):
-    """
-    Make a dictionary translating node's ID of ascending order into
-    integers starting from 0 and incremeting by 1. By default node's
-    ID are the key, but we can revert it as the value.
-
-    Parameters
-    ----------
-    G : networkx.classes.graph.Graph
-        Graph for which we create the index.
-    revert : bool, optional
-        If False, node's ID are the keys, the count are the values.
-        If True, node's ID are the values, the count are the keys.
-        The default is False.
-
-    Returns
-    -------
-    index_table : dict
-        Dictionary translating node's ID into integers starting from 0.
-
-    """
-    index_table = dict()
-    count = 0
-    if revert is False:
-        for node in sorted(G.nodes):
-            index_table[node] = count
-            count += 1
-    else:
-        for node in sorted(G.nodes):
-            index_table[count] = node
-            count += 1
-    return index_table
-
-
-def create_edge_index(G, revert=False):
-    """
-    Make a dictionary translating edge's ID of ascending order into
-    integers starting from 0 and incremeting by 1. By default edge's
-    ID are the key, but we can revert it as the value.
-
-    Parameters
-    ----------
-    G : networkx.classes.graph.Graph
-        Graph for which we create the index.
-    revert : bool, optional
-        If False, node's ID are the keys, the count are the values.
-        If True, node's ID are the values, the count are the keys.
-        The default is False.
-
-    Returns
-    -------
-    index_table : dict
-        Dictionary translating edge's ID into integers starting from 0.
-
-    """
-    index_table = dict()
-    count = 0
-    if revert is False:
-        for edge in sorted(G.edges):
-            index_table[edge] = count
-            count += 1
-    else:
-        for edge in sorted(G.edges):
-            index_table[count] = edge
-            count += 1
-    return index_table
-
-
 def clean_isolated_node(G):
-    """Remove every node that has no link to any other node"""
+    """Remove every node of G that has no link to any other node"""
     H = G.copy()
     for node in G.nodes:
         if H.degree(node) == 0:
@@ -122,6 +54,22 @@ def get_area_under_curve(curve, xx=None, normalize_y=False, normalize_x=False):
     if normalize_x is True:
         return (auc(xx, curve) - np.min(xx)) / (np.max(xx) - np.min(xx))
     return auc(xx, curve)
+
+
+# TODO give level of bikeability instead of boolean as an option
+def OSM_bicycle_tag():
+    biketags = {}
+    biketags["sidewalk:left:bicycle"] = "yes"
+    biketags["sidewalk:left:right"] = "yes"
+    biketags["cycleway:left"] = ["shared_lane", "shared_busway", "track"]
+    biketags["cycleway:right"] = ["shared_lane", "shared_busway", "track"]
+    biketags["cycleway:both"] = "lane"
+    biketags["cycleway"] = ["shared_lane", "shared_busway", "opposite_lane", "opposite"]
+    biketags["bicycle"] = ["designated", "yes", "official", "use_sidepath"]
+    biketags["highway"] = ["cycleway", "bridleway"]
+    biketags["cyclestreet"] = "yes"
+    biketags["bicycle_road"] = "yes"
+    return biketags
 
 
 # TODO make find all edges attributes values except for list of keys, to avoid like speed limit width name osmid those kind of useless ones
@@ -146,7 +94,7 @@ def add_edge_attr_from_dict(G, attr_dict, name):
 
 
 def get_node_positions(G):
-    """Find all node longitude and latitude from the graph G and put them into a numpy array."""
+    """Find all node positions x (longitude) and y (latitude) from the graph G and put them into a numpy array."""
     lon = [val for key, val in sorted(get_node_attributes(G, "x").items())]
     lat = [val for key, val in sorted(get_node_attributes(G, "y").items())]
     return np.transpose(np.array([lat, lon]))
@@ -154,30 +102,22 @@ def get_node_positions(G):
 
 def multidigraph_to_graph(G):
     """
-    Transform a MultiDiGraph into an undirected Graph by first removing the direction, making a MultiGraph, and then making it a Graph by making sure that there is no multiple edges : for self-loop we create two nodes within the geometry of the edge, for node with multiple edges we create one node within each geometry of the edge. We avoid to merge directed edges without the same arbitrary attributes.
-
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        MultiDiGraph we want to transform.
-
-    Returns
-    -------
-    G : networkx.Graph
-        Undirected graph made from the initial MultiDiGraph.
+    Transform a spatial networkx.MultiDiGraph into a networkx.Graph, keeping all edges by adding artificial nodes. We need to add two  nodes inside a self-loop, and one node for each parallel paths between two nodes.
     """
     G = G.copy()
+    # Use osmnx function that keep all edges that have different geometries
     G = get_undirected(G)
-    initial_node_list = list(G.nodes())  # to avoid issue with changes
+    # Put list of node as independent variable to make changes on the graph in the loop
+    initial_node_list = list(G.nodes())
     for node in initial_node_list:
         neighbors = np.transpose(list(G.edges(node)))[1]
-        if node in neighbors:  # then self_loop, need 2 artifical nodes
+        # Node in its neighbors mean that there is a self-loop
+        if node in neighbors:
             for k in list(G.get_edge_data(node, node).keys()):
                 G = _solve_self_loop(G, node, k)
         for neigh in neighbors:
-            if (
-                G.number_of_edges(node, neigh) > 1
-            ):  # t hen multiple path, need 1 artifical nodes per additional paths
+            # More than 2 edges between the same nodes means there are multiple paths
+            if G.number_of_edges(node, neigh) > 1:
                 G = _solve_multiple_path(G, node, neigh)
     G = Graph(G)
     return G
@@ -185,40 +125,28 @@ def multidigraph_to_graph(G):
 
 def _solve_self_loop(G, node, key):
     """
-    Transform a loop where a node is connected to itself by adding two nodes in the geometry of the loop.
+    Remove a self-loop where a node is connected to itself by adding two nodes in the geometry of the loop.
 
-    Parameters
-    ----------
-    G : networkx.MultiGraph
-        MultiGraph we want to transform.
-    node : int
-        Node's ID where there is a self-loop.
-    key : int
-        Key of the edge, needed because the graph is a MultiGraph
+    Args:
+        G (networkx.MultiGraph): MultiGraph where there is a self-loop that we want to remove.
+        node (int): ID of the node where there is a self-loop.
+        key (int): Key of the self-loop edge as we are in a MultiDiGraph.
 
-    Returns
-    -------
-    G : networkx.MultiGraph
-        MultiGraph with the self-loop resolved.
-
+    Returns:
+        networkx.MultiGraph : MultiGraph with the self-loop removed.
     """
-    edge_attributes = dict(G.edges[node, node, key])  # take attributes
-    geom = list(edge_attributes["geometry"].coords[:])
-    edge_attributes.pop("geometry")  # remove geometry
-    edge_attributes.pop("length")  # remove length
+    edge_attributes = dict(G.edges[node, node, key])
+    geom = list(G.edges[node, node, key]["geometry"].coords[:])
+    edge_attributes.pop("geometry")
+    edge_attributes.pop("length")
     G.remove_edge(node, node, key)
-    f_num = node + 1  # find unique ID not already in the graph
-    while f_num in G.nodes():
-        f_num += 1
+    # Find unique ID not already in the graph
+    f_num = max(G.nodes) + 1
     s_num = f_num + 1
-    while s_num in G.nodes():
-        s_num += 1
     # Add nodes as the first and last point in the LineString geometry
-    # if we don't count the original node of the self-loop
     G.add_node(f_num, x=geom[1][0], y=geom[1][1])
     G.add_node(s_num, x=geom[-2][0], y=geom[-2][1])
-    # Connect them with edges keeping the attributes and having in total
-    # the same geometry as before
+    # Connect them with edges keeping the attributes, with the sum of all geometries being the original loop
     fp = LineString(geom[:2])
     sp = LineString(geom[-2:])
     tp = LineString(geom[1:-1])
@@ -230,22 +158,15 @@ def _solve_self_loop(G, node, key):
 
 def _solve_multiple_path(G, node, other_node):
     """
-    Transform multiple paths between nodes by adding artifical nodes on every path but one.
+    Remove multiple paths between two nodes by adding a node for each path but one.
 
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        MultiDiGraph we want to transform.
-    node : int
-        First node's ID.
-    other_node : int
-        Second node's ID.
+    Args:
+        G (networkx.MultiGraph): MultiGraph where there are multiple paths that we want to remove.
+        node (int): ID of the first node
+        other_node (int): ID of the second node
 
-    Returns
-    -------
-    G : networkx.MultiDiGraph
-        MultiDiGraph with the multiple path issue solved.
-
+    Returns:
+        networkx.MultiGraph : MultiGraph with the multiple paths removed.
     """
     # for every path but one, to add as little number of node as needed
     count = 0
