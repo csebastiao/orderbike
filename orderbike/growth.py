@@ -7,10 +7,9 @@ import networkx as nx
 from . import metrics
 
 
+# TODO: Find common structure with precomp func and func only with kwargs or something, see coverage
 # TODO: Make kwargs for precomp func and for func or find smarter way to pick one
-# TODO: Test well the whole precomp and kwargs stuff to make sure it's working as intended
-# TODO: Add verbose mode that also give in an array some additional informations to remember what was done in the growth ?
-# TODO: Add logging to make sur to always understand what happens here ?
+# TODO: Add logging or verbose to make sur to always understand what happens here ?
 def order_network_growth(
     G,
     built=True,
@@ -61,9 +60,12 @@ def order_network_growth(
         if keep_connected:
             if order == "subtractive":
                 invalid_edges = get_subtractive_invalid_edges(G_actual, built=built)
+                valid_edges = [
+                    edge for edge in G_actual.edges if edge not in invalid_edges
+                ]
             elif order == "additive":
                 invalid_edges = get_additive_invalid_edges(G_actual, G)
-            valid_edges = [edge for edge in G.edges if edge not in invalid_edges]
+                valid_edges = [edge for edge in G.edges if edge not in invalid_edges]
         else:
             valid_edges = [edge for edge in G.edges if edge not in G_actual.edges]
         metric_vals = []
@@ -86,6 +88,8 @@ def order_network_growth(
             actual_edges.append(step)
             G_actual = G.edge_subgraph(actual_edges)
         order_growth.append(step)
+    if order == "subtractive":
+        order_growth.reverse()
     return order_growth
 
 
