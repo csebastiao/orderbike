@@ -36,7 +36,6 @@ def order_network_growth(
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
-    G = G.copy()
     order_growth = []
     if built:
         init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
@@ -45,15 +44,15 @@ def order_network_growth(
         closeness = nx.closeness_centrality(G, distance="length")
         center = max(closeness, key=closeness.get)
         init_edges = [list(G.neighbors(center))[0]]
-    if order == "additive":
-        actual_edges = init_edges
-    order_growth = []
+    if order == "subtractive":
+        G_actual = G.copy()
+    elif order == "additive":
+        actual_edges = init_edges.copy()
+        G_actual = G.edge_subgraph(actual_edges)
     num_step = len(G.edges) - len(init_edges)
-    print(num_step)
-    # TODO: Maybe not work on copy of G, keep a copy of G and a copy of "actual graph at step X" ?
     for i in range(num_step):
         if precomp_func is not None:
-            precomputed_val = precomp_func(G, order=order)
+            precomputed_val = precomp_func(G_actual, order=order)
             # Concatenate both list of keyworded arguments to pass to the metric function, with precomputed superceding
             kwargs_metric_func = kwargs | precomputed_val
         else:
@@ -61,32 +60,31 @@ def order_network_growth(
         # If connectedness constraint remove invalid edges that would add unacceptable new component
         if keep_connected:
             if order == "subtractive":
-                invalid_edges = get_subtractive_invalid_edges(G, built=built)
+                invalid_edges = get_subtractive_invalid_edges(G_actual, built=built)
             elif order == "additive":
-                invalid_edges = get_additive_invalid_edges(
-                    G.edge_subgraph(init_edges), G
-                )
+                invalid_edges = get_additive_invalid_edges(G_actual, G)
             valid_edges = [edge for edge in G.edges if edge not in invalid_edges]
         else:
-            valid_edges = G.edges
+            valid_edges = [edge for edge in G.edges if edge not in G_actual.edges]
         metric_vals = []
         # Remove/add an edge to the actual graph and compute the metric on it
         for edge in valid_edges:
             if order == "subtractive":
-                H = G.copy()
+                H = G_actual.copy()
                 H.remove_edge(*edge)
             elif order == "additive":
-                temp_edges = actual_edges
+                temp_edges = actual_edges.copy()
                 temp_edges.append(edge)
                 H = G.edge_subgraph(temp_edges)
-            temp_m = metric_func(G, edge, order=order, **kwargs_metric_func)
+            temp_m = metric_func(H, edge, order=order, **kwargs_metric_func)
             metric_vals.append(temp_m)
         # Choose the edge that gives the maximum value for the metric
         step = optimal_step(metric_vals, valid_edges)
         if order == "subtractive":
-            G.remove_edge(*step)
+            G_actual.remove_edge(*step)
         elif order == "additive":
-            actual_edges.append(edge)
+            actual_edges.append(step)
+            G_actual = G.edge_subgraph(actual_edges)
         order_growth.append(step)
     return order_growth
 
@@ -133,6 +131,7 @@ def get_subtractive_invalid_edges(G, built=True):
         return updated_invalid_edges
 
 
+# TODO: Solve issue of having an edge
 def get_additive_invalid_edges(G_actual, G_final):
     """
     Find all invalid edges that if added would create a new, unacceptable component to the graph. A new component is unacceptable if it's not a subgraph of a component that is part of the final graph but not of the actual graph.

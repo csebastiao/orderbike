@@ -24,11 +24,11 @@ if __name__ == "__main__":
         G,
         built=True,
         keep_connected=True,
-        order="subtractive",
+        order="additive",
         metric_func=metrics.get_coverage,
         precomp_func=metrics.prefunc_coverage,
     )
-    order_growth.reverse()
+    # order_growth.reverse()
     G_built = G.edge_subgraph([edge for edge in G.edges if G.edges[edge]["built"] == 1])
     actual_edges = [edge for edge in G_built.edges]
     foldername = "./plots/example_toy_subtractive_coverage_connected_growth"
