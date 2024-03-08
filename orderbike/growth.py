@@ -36,6 +36,7 @@ def order_network_growth(
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
+    G = G.copy()
     order_growth = []
     if built:
         init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
@@ -47,7 +48,10 @@ def order_network_growth(
     if order == "additive":
         actual_edges = init_edges
     order_growth = []
-    for i in range(len(G) - len(init_edges)):
+    num_step = len(G.edges) - len(init_edges)
+    print(num_step)
+    # TODO: Maybe not work on copy of G, keep a copy of G and a copy of "actual graph at step X" ?
+    for i in range(num_step):
         if precomp_func is not None:
             precomputed_val = precomp_func(G, order=order)
             # Concatenate both list of keyworded arguments to pass to the metric function, with precomputed superceding
@@ -70,7 +74,7 @@ def order_network_growth(
         for edge in valid_edges:
             if order == "subtractive":
                 H = G.copy()
-                H.remove_edge(edge)
+                H.remove_edge(*edge)
             elif order == "additive":
                 temp_edges = actual_edges
                 temp_edges.append(edge)
@@ -80,7 +84,7 @@ def order_network_growth(
         # Choose the edge that gives the maximum value for the metric
         step = optimal_step(metric_vals, valid_edges)
         if order == "subtractive":
-            G.remove_edge(step)
+            G.remove_edge(*step)
         elif order == "additive":
             actual_edges.append(edge)
         order_growth.append(step)

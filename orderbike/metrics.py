@@ -17,7 +17,7 @@ def get_coverage(G, edge, geom={}, actual_area=0, buff_size=200, order="subtract
         geom_new.pop(edge)
     if order == "additive":
         geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
-    new_area = shapely.ops.unary_union(geom_new).area
+    new_area = shapely.ops.unary_union(list(geom_new.values())).area
     if order == "subtractive":
         return (actual_area - new_area) / G.edges[edge]["length"]
     elif order == "additive":
@@ -31,7 +31,10 @@ def get_coverage(G, edge, geom={}, actual_area=0, buff_size=200, order="subtract
 def prefunc_coverage(G, order=None, buff_size=200):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
     geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
-    return {"geom": geom, "actual_area": shapely.ops.unary_union(geom).area}
+    return {
+        "geom": geom,
+        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+    }
 
 
 def get_directness(G, edge):
