@@ -15,8 +15,8 @@ def order_network_growth(
     built=True,
     keep_connected=True,
     order="subtractive",
-    metric_func=metrics.get_coverage,
-    precomp_func=metrics.prefunc_coverage,
+    metric_func=metrics.growth_coverage,
+    precomp_func=metrics.prefunc_growth_coverage,
     **kwargs,
 ):
     """
@@ -40,9 +40,17 @@ def order_network_growth(
         init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
     # If no built part, start from a seed being a random edge from the node with the highest closeness
     else:
-        closeness = nx.closeness_centrality(G, distance="length")
-        center = max(closeness, key=closeness.get)
-        init_edges = [list(G.neighbors(center))[0]]
+        # If subtractive, don't care about finding an initial edge because will be found through optimization, dummy variable
+        if order == "subtractive":
+            init_edges = [0]
+        # If additive, use as initial edge if none given the one with the highest average closeness of its nodes
+        elif order == "additive":
+            closeness = nx.closeness_centrality(G, distance="length")
+            edge_closeness = {}
+            for edge in G.edges:
+                u, v = edge
+                edge_closeness[edge] = (closeness[u] + closeness[v]) / 2
+            init_edges = [tuple(max(edge_closeness, key=edge_closeness.get))]
     if order == "subtractive":
         G_actual = G.copy()
     elif order == "additive":
@@ -51,11 +59,9 @@ def order_network_growth(
     num_step = len(G.edges) - len(init_edges)
     for i in range(num_step):
         if precomp_func is not None:
-            precomputed_val = precomp_func(G_actual, order=order)
-            # Concatenate both list of keyworded arguments to pass to the metric function, with precomputed superceding
-            kwargs_metric_func = kwargs | precomputed_val
+            precomp_kwargs = precomp_func(G_actual, order=order, **kwargs)
         else:
-            kwargs_metric_func = kwargs
+            precomp_kwargs = kwargs
         # If connectedness constraint remove invalid edges that would add unacceptable new component
         if keep_connected:
             if order == "subtractive":
@@ -67,7 +73,12 @@ def order_network_growth(
                 invalid_edges = get_additive_invalid_edges(G_actual, G)
                 valid_edges = [edge for edge in G.edges if edge not in invalid_edges]
         else:
-            valid_edges = [edge for edge in G.edges if edge not in G_actual.edges]
+            if order == "subtractive":
+                valid_edges = [
+                    edge for edge in G_actual.edges if edge not in init_edges
+                ]
+            elif order == "additive":
+                valid_edges = [edge for edge in G.edges if edge not in G_actual.edges]
         metric_vals = []
         # Remove/add an edge to the actual graph and compute the metric on it
         for edge in valid_edges:
@@ -78,7 +89,7 @@ def order_network_growth(
                 temp_edges = actual_edges.copy()
                 temp_edges.append(edge)
                 H = G.edge_subgraph(temp_edges)
-            temp_m = metric_func(H, edge, order=order, **kwargs_metric_func)
+            temp_m = metric_func(H, edge, **precomp_kwargs)
             metric_vals.append(temp_m)
         # Choose the edge that gives the maximum value for the metric
         step = optimal_step(metric_vals, valid_edges)

@@ -5,8 +5,10 @@ Example script to test the growth of a basic example of a bridge graph that we w
 
 import os
 
+import json
+
 from orderbike import growth, metrics, plot
-from utg import create_graph
+from utg import create_graph, utils
 
 
 if __name__ == "__main__":
@@ -15,17 +17,32 @@ if __name__ == "__main__":
         G.edges[edge]["built"] = 0
     for edge in [[5, 6], [5, 10], [6, 11], [10, 11]]:
         G.edges[edge]["built"] = 1
-    order_growth = growth.order_network_growth(
-        G,
-        built=True,
-        keep_connected=True,
-        order="additive",
-        metric_func=metrics.get_coverage,
-        precomp_func=metrics.prefunc_coverage,
-    )
-    foldername = "./plots/example_toy_additive_coverage_connected_growth"
-    if not os.path.exists(foldername):
-        os.makedirs(foldername)
-    # Necessary as long as using osmnx for plotting function
-    G.graph["crs"] = "epsg:2154"
-    plot.plot_growth(G, order_growth, foldername)
+    for ORDERNAME in ["additive", "subtractive"]:
+        for CONNECTED in [True, False]:
+            for BUILT in [True, False]:
+                # ORDERNAME = "subtractive"
+                # CONNECTED = False
+                order_growth = growth.order_network_growth(
+                    G,
+                    built=BUILT,
+                    keep_connected=CONNECTED,
+                    order=ORDERNAME,
+                    metric_func=metrics.growth_coverage,
+                    precomp_func=metrics.prefunc_growth_coverage,
+                )
+                foldername = "./data/processed/example_toy_growth/coverage_" + ORDERNAME
+                if CONNECTED:
+                    foldername += "_connected"
+                if BUILT:
+                    foldername += "_built"
+                if not os.path.exists(foldername):
+                    os.makedirs(foldername)
+                with open(foldername + "/order_growth.json", "w") as f:
+                    json.dump(order_growth, f)
+                utils.save_graph(G, foldername + "/toy_graph.graphml")
+                # Necessary as long as using osmnx for plotting function
+                G.graph["crs"] = "epsg:2154"
+                plot.plot_growth(G, order_growth, foldername, built=BUILT)
+                plot.make_growth_video(
+                    foldername, foldername + "/growth_video.mp4", fps=3
+                )

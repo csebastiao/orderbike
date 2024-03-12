@@ -11,10 +11,10 @@ from orderbike.utils import dist_vector, get_node_positions
 
 
 # TODO: Ugly writing but work, need to know what to put in kwargs and what not to put in kwargs for template metric func
-def get_coverage(
+def growth_coverage(
     G, edge, geom={}, actual_area=0, buff_size=200, order="subtractive", pregraph=None
 ):
-    """Get coverage of the graph G. Works with growth.dynamic_growth function. See prefunc_coverage."""
+    """Get coverage of the graph G. Works with growth.dynamic_growth function. See prefunc_growth_coverage."""
     geom_new = geom.copy()
     if order == "subtractive":
         geom_new.pop(edge)
@@ -31,17 +31,18 @@ def get_coverage(
         )
 
 
-def prefunc_coverage(G, order=None, buff_size=200):
+def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
     geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
     return {
         "pregraph": G,
+        "order": order,
         "geom": geom,
         "actual_area": shapely.ops.unary_union(list(geom.values())).area,
     }
 
 
-def get_directness(G, edge):
+def directness(G, edge):
     """Get directness of the graph G. Works with growth.dynamic_growth. See prefunc_directness."""
     mat = get_directness_matrix(G)
     # Mean directness on all non-null value, a null value means in different components or same node
@@ -55,7 +56,7 @@ def get_directness_matrix(G, lonlat=False):
     """Get the symmetrical directness matrix of a graph G. If lonlat is True, node positions are in geographic CRS."""
     shortest_matrix = get_shortest_network_path_length_matrix(G)
     euclidean_matrix = get_euclidean_distance_matrix(G, lonlat=lonlat)
-    return avoid_zerodiv_matrix(euclidean_matrix, shortest_matrix)
+    return _avoid_zerodiv_matrix(euclidean_matrix, shortest_matrix)
 
 
 def get_shortest_network_path_length_matrix(G):
@@ -115,7 +116,7 @@ def get_euclidean_distance_matrix(G, lonlat=False):
     return np.array(euclidean_matrix)
 
 
-def avoid_zerodiv_matrix(num_mat, den_mat):
+def _avoid_zerodiv_matrix(num_mat, den_mat):
     """
     Divide one matrix by another while replacing numerator divided by 0 by 0.
     Example: [[1, 2],   divided by [[1, 0],    will give out [[1, 0],
