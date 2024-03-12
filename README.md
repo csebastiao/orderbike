@@ -45,8 +45,10 @@ pip install -e .
 To find an order of growth, you need to define a networkx Graph object that is your bicycle network plan, with on every edge a boolean attribute named `built` to discriminate the part of the network that is already built and the one that is planned. Once you have your network, you need to choose a set of constraints on the growth, and a growth strategy. You then get an order of construction, that can be visualized and analyzed through premade functions.
 
 
-## Add a dynamic metric function on which to optimize growth
-To add a metric, you need to respect the following template:
+## Add your own functions for the growth
+
+### Dynamic metric function
+To add a dynamic metric, you need to respect the following template:
 
 ```python
 def metricname(G, edge, keyword_arg=0):
@@ -63,4 +65,16 @@ def precomp_metricname(G, order="subtractive", keyword_arg=0):
   return {"keyword_arg_0": compute_something}
 ```
 
-Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything at his disposal, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`.
+Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything at his disposal, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`. If you don't need a precomputation function, the `**kwargs` given to the growth function will be given to the metric function instead. The `metricname` function need to return a single value, being the value of the metric for the step with this specific edge removal/addition.
+
+### Ranking function
+To add a ranking metric, you need to respect the following template:
+
+```python
+def rankingname(G, keyword_arg=0):
+  """Here G is the final graph."""
+  rank = G + keyword_arg
+  return rank
+```
+
+The `rankingname` function need to return a list of edges in descending order.
