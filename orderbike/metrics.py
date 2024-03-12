@@ -3,6 +3,8 @@
 Functions to measure metrics of a graph.
 """
 
+import random
+
 import networkx as nx
 import numpy as np
 import shapely
@@ -10,7 +12,19 @@ import shapely
 from orderbike.utils import dist_vector, get_node_positions
 
 
-# TODO: Ugly writing but work, need to know what to put in kwargs and what not to put in kwargs for template metric func
+def growth_random(G):
+    """Return a list of all edges of G in a random order."""
+    edgelist = list(G.edges)
+    random.shuffle(edgelist)
+    return edgelist
+
+
+def growth_betweenness(G, weight="length"):
+    """Return the list of all edges of G ranked in descending order of edge betweenness."""
+    ebet = nx.edge_betweenness_centrality(G, weight=weight)
+    return [key for key, val in sorted(ebet.items(), key=lambda x: x[1], reverse=True)]
+
+
 def growth_coverage(
     G, edge, pregraph=None, order="subtractive", geom={}, actual_area=0, buff_size=200
 ):
