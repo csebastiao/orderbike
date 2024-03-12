@@ -12,7 +12,7 @@ from orderbike.utils import dist_vector, get_node_positions
 
 # TODO: Ugly writing but work, need to know what to put in kwargs and what not to put in kwargs for template metric func
 def growth_coverage(
-    G, edge, geom={}, actual_area=0, buff_size=200, order="subtractive", pregraph=None
+    G, edge, pregraph=None, order="subtractive", geom={}, actual_area=0, buff_size=200
 ):
     """Get coverage of the graph G. Works with growth.dynamic_growth function. See prefunc_growth_coverage."""
     geom_new = geom.copy()
@@ -39,6 +39,7 @@ def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
         "order": order,
         "geom": geom,
         "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "buff_size": buff_size,
     }
 
 
