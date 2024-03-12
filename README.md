@@ -43,3 +43,24 @@ pip install -e .
 ## How to use
 
 To find an order of growth, you need to define a networkx Graph object that is your bicycle network plan, with on every edge a boolean attribute named `built` to discriminate the part of the network that is already built and the one that is planned. Once you have your network, you need to choose a set of constraints on the growth, and a growth strategy. You then get an order of construction, that can be visualized and analyzed through premade functions.
+
+
+## Add a dynamic metric function on which to optimize growth
+To add a metric, you need to respect the following template:
+
+```python
+def metricname(G, edge, keyword_arg=0):
+  """Here G is the one with the removed or added edge, also given here as edge. The kwargs come from the results of the precomp_metricname."""
+  compute_something = keyword_arg + G * edge
+  return compute_something
+
+def precomp_metricname(G, order="subtractive", keyword_arg=0):
+  """Here G is the actual one, before the test of adding/removing one depending on the order of the greedy optimization, also given here as order. The kwargs given in the order_growth function will go here."""
+  if order == "subtractive":
+    compute_something = keyword_arg * G
+  elif order == "additive":
+    compute_something = G - keyword_arg
+  return {"keyword_arg_0": compute_something}
+```
+
+Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything at his disposal, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`.
