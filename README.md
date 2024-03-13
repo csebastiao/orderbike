@@ -65,7 +65,7 @@ def precomp_metricname(G, order="subtractive", keyword_arg=0):
   return {"keyword_arg_0": compute_something}
 ```
 
-Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything at his disposal, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`. If you don't need a precomputation function, the `**kwargs` given to the growth function will be given to the metric function instead. The `metricname` function need to return a single value, being the value of the metric for the step with this specific edge removal/addition.
+Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`. If you don't need a precomputation function, the `**kwargs` given to the growth function will be given to the metric function instead. The `metricname` function need to return a single value, being the value of the metric for the step with this specific edge removal/addition. It needs to be something where the maximum value is pointing to the optimal choice. So if the actual metric is a monotonic function of the number of step like coverage, you need to make a difference betweeen subtractive and additive order in the growth function based on that metric (see `orderbike.metrics.growth_coverage`).
 
 ### Ranking function
 To add a ranking metric, you need to respect the following template:
