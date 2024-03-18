@@ -6,9 +6,80 @@ Functions to visualize results of the growth of a graph.
 import os
 
 import cv2
+from matplotlib import pyplot as plt
 import networkx as nx
 import osmnx as ox
 import pandas as pd
+import shapely
+
+
+def plot_adaptative_coverage(
+    G,
+    growth_steps,
+    ax=None,
+    built=True,
+    plot_change=True,
+    show_buffer_change=True,
+    buff_size=500,
+    threshold_change=0.01,
+):
+    if ax is None:
+        fig, ax = plt.subplots()
+    G_actual = _init_graph(G, growth_steps, built=built)
+    actual_edges = [edge for edge in G_actual.edges]
+    yy = []
+    buffer_change = {}
+    for ids, edge in enumerate(growth_steps):
+        new_buff = False
+        actual_edges.append(edge)
+        geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in actual_edges]
+        geom_bef = [
+            G.edges[edge]["geometry"].buffer(buff_size) for edge in actual_edges[:-1]
+        ]
+        change = (
+            shapely.ops.unary_union(geom).area - shapely.ops.unary_union(geom_bef).area
+        ) / shapely.ops.unary_union(geom_bef).area
+        while change < threshold_change:
+            new_buff = True
+            buff_size = buff_size / 2
+            geom = [
+                G.edges[edge]["geometry"].buffer(buff_size) for edge in actual_edges
+            ]
+            geom_bef = [
+                G.edges[edge]["geometry"].buffer(buff_size)
+                for edge in actual_edges[:-1]
+            ]
+            change = (
+                shapely.ops.unary_union(geom).area
+                - shapely.ops.unary_union(geom_bef).area
+            ) / shapely.ops.unary_union(geom_bef).area
+        if new_buff:
+            buffer_change[ids] = buff_size
+        if plot_change:
+            yy.append(change)
+        else:
+            yy.append(shapely.ops.unary_union(geom).area)
+    if plot_change:
+        label = "Change in coverage with decreasing buffer"
+    else:
+        label = "Coverage with decreasing buffer"
+    ax.scatter(range(len(growth_steps)), yy, color="blue", label=label)
+    if show_buffer_change:
+        for val in buffer_change:
+            ax.axvline(
+                val,
+                color="gray",
+                linestyle="dashed",
+                label=f"Buffer changing to {buffer_change[val]}m",
+            )
+    if plot_change:
+        ax.axhline(
+            threshold_change,
+            color="red",
+            linestyle="dashed",
+            label="Threshold for buffer change",
+        )
+    return fig, ax
 
 
 def plot_graph(G, show=True, save=False, filepath=None, **kwargs):
@@ -39,14 +110,11 @@ def plot_growth(
     color_added="blue",
     color_newest="green",
 ):
+    G_init = _init_graph(G, growth_steps, built=built)
     if built:
-        init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
-        edge_color = {edge: color_built for edge in init_edges}
-    # Find initial edges if not built by finding the ones that are not on the growth steps. Supposedly it's a single random edge from the highest closeness node, see growth.order_network_growth
+        edge_color = {edge: color_built for edge in G_init.edges}
     else:
-        init_edges = [edge for edge in G.edges if edge not in growth_steps]
-        edge_color = {edge: color_newest for edge in init_edges}
-    G_init = G.edge_subgraph(init_edges)
+        edge_color = {edge: color_newest for edge in G_init.edges}
     # Make first plot only to get a fixed bounding box for plots, being the one for the final graph
     fig, ax = plot_graph(G, show=False, save=False, close=True)
     xlim = ax.get_xlim()
@@ -67,8 +135,8 @@ def plot_growth(
         close=True,
     )
     if not built:
-        edge_color = {edge: color_added for edge in init_edges}
-    actual_edges = init_edges.copy()
+        edge_color = {edge: color_added for edge in G_init.edges}
+    actual_edges = list(G_init.edges)
     old_edge = None
     for ids, edge in enumerate(growth_steps):
         actual_edges.append(edge)
@@ -91,6 +159,15 @@ def plot_growth(
             close=True,
         )
         old_edge = edge
+
+
+def _init_graph(G, growth_steps, built=True):
+    if built:
+        init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
+    # Find initial edges if not built by finding the ones that are not on the growth steps. Supposedly it's a single random edge from the highest closeness node, see growth.order_network_growth
+    else:
+        init_edges = [edge for edge in G.edges if edge not in growth_steps]
+    return G.edge_subgraph(init_edges)
 
 
 def make_growth_video(img_folder_name, video_name, fps=5):

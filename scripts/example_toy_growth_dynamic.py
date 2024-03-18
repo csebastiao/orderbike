@@ -27,11 +27,13 @@ if __name__ == "__main__":
                     built=BUILT,
                     keep_connected=CONNECTED,
                     order=ORDERNAME,
-                    metric_func=metrics.directness,
-                    precomp_func=None,
+                    metric_func=metrics.growth_coverage,
+                    precomp_func=metrics.prefunc_growth_adaptative_coverage,
+                    G_final=G,
                 )
                 foldername = (
-                    "./data/processed/example_toy_growth/directness_" + ORDERNAME
+                    "./data/processed/example_toy_growth/adaptative_coverage_"
+                    + ORDERNAME
                 )
                 if CONNECTED:
                     foldername += "_connected"

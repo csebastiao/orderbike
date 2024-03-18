@@ -57,6 +57,58 @@ def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
     }
 
 
+# TODO: Probably better to create a Class for the Growth thing to have some memory of stuff like this ?
+def prefunc_growth_adaptative_coverage(
+    G,
+    order="subtractive",
+    buff_size=500,
+    G_final=None,
+    order_growth=[],
+    threshold_change=0.01,
+):
+    """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and reduce the buffer size if too big."""
+    if len(order_growth) > 1:
+        if order == "subtractive":
+            edges_bef = list(G.edges)
+            edges_bef.append(tuple([order_growth[-1]]))
+            G_bef = G_final.edge_subgraph(edges_bef)
+        elif order == "additive":
+            G_bef = G.copy()
+            G_bef.remove_edge(*order_growth[-1])
+        geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
+        geom_bef = {
+            edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
+            for edge in G_bef.edges
+        }
+        change = (
+            shapely.ops.unary_union(list(geom.values())).area
+            - shapely.ops.unary_union(list(geom_bef.values())).area
+        ) / shapely.ops.unary_union(list(geom_bef.values())).area
+        # Since there is no memory in the precomp function we need to always recompute the actual buffer size
+        while change < threshold_change:
+            buff_size = buff_size / 2
+            geom = {
+                edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges
+            }
+            geom_bef = {
+                edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
+                for edge in G_bef.edges
+            }
+            change = (
+                shapely.ops.unary_union(list(geom.values())).area
+                - shapely.ops.unary_union(list(geom_bef.values())).area
+            ) / shapely.ops.unary_union(list(geom_bef.values())).area
+    else:
+        geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
+    return {
+        "pregraph": G,
+        "order": order,
+        "geom": geom,
+        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "buff_size": buff_size,
+    }
+
+
 def directness(G, edge):
     """Get directness of the graph G. Works with growth.dynamic_growth. See prefunc_directness."""
     mat = get_directness_matrix(G)
