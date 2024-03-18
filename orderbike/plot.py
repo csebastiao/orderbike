@@ -9,8 +9,10 @@ import cv2
 import geopandas as gpd
 from matplotlib import pyplot as plt
 import networkx as nx
+import numpy as np
 import shapely
 
+from . import metrics
 from .utils import get_node_positions
 
 
@@ -34,20 +36,12 @@ def plot_adaptative_coverage(
     dpi=1000,
     figsize=(16, 9),
 ):
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize, layout="constrained")
-    else:
-        fig = ax.get_figure()
+    """Plot the adaptative coverage, with a decreasing buffer whenever the coverage is reaching a plateau."""
+    fig, ax = _init_fig(ax=ax, figsize=figsize)
     G_actual = _init_graph(G, growth_steps, built=built)
     actual_edges = [edge for edge in G_actual.edges]
     yy = []
-    if x_meter:
-        xx = []
-        total_length = sum([G_actual.edges[edge]["length"] for edge in G_actual.edges])
-        ax.set_xlabel("Meters built")
-    else:
-        xx = range(len(growth_steps))
-        ax.set_xlabel("Steps built")
+    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
     buffer_change = {}
     for ids, edge in enumerate(growth_steps):
         new_buff = False
@@ -75,12 +69,9 @@ def plot_adaptative_coverage(
             ) / shapely.ops.unary_union(geom_bef).area
         if plot_change:
             yy.append(change)
-        if x_meter:
-            total_length += G.edges[edge]["length"]
-            xx.append(total_length)
         if new_buff:
             if x_meter:
-                buffer_change[total_length] = buff_size
+                buffer_change[xx[ids]] = buff_size
             else:
                 buffer_change[ids] = buff_size
     if not plot_change:
@@ -118,6 +109,118 @@ def plot_adaptative_coverage(
     return fig, ax
 
 
+def _set_x(ax, G_init, G_final, steps, x_meter=True):
+    """Set the xlabel and x values for the growth step, either by step or in meter."""
+    if x_meter:
+        xx = []
+        total_length = sum([G_init.edges[edge]["length"] for edge in G_init.edges])
+        for step in steps:
+            total_length += G_final.edges[step]["length"]
+            xx.append(total_length)
+        ax.set_xlabel("Meters built")
+    else:
+        xx = range(len(steps))
+        ax.set_xlabel("Steps built")
+    return xx
+
+
+def plot_coverage(
+    G,
+    growth_steps,
+    buff_size=200,
+    ax=None,
+    built=True,
+    x_meter=True,
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    dpi=1000,
+    figsize=(16, 9),
+    **kwargs,
+):
+    """Plot the coverage through the growth of the graph for a fixed buffer."""
+    fig, ax = _init_fig(ax=ax, figsize=figsize)
+    G_actual = _init_graph(G, growth_steps, built=built)
+    yy = []
+    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
+    geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
+    for edge in growth_steps:
+        geom.append(G.edges[edge]["geometry"].buffer(buff_size))
+        yy.append(shapely.ops.unary_union(geom).area)
+    ax.set_ylabel(f"Total coverage ($m^2$) for buffer of {buff_size}m")
+    ax.scatter(xx, yy, **kwargs)
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
+    return fig, ax
+
+
+def plot_directness(
+    G,
+    growth_steps,
+    ax=None,
+    built=True,
+    x_meter=True,
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    dpi=1000,
+    figsize=(16, 9),
+    **kwargs,
+):
+    fig, ax = _init_fig(ax=ax, figsize=figsize)
+    G_actual = _init_graph(G, growth_steps, built=built)
+    actual_edges = [edge for edge in G_actual.edges]
+    yy = []
+    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
+    for edge in growth_steps:
+        actual_edges.append(tuple(edge))
+        G_actual = G.edge_subgraph(actual_edges)
+        yy.append(metrics.directness(G_actual, edge))
+    ax.set_ylabel("Directness")
+    ax.scatter(xx, yy, **kwargs)
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
+    return fig, ax
+
+
+def plot_relative_directness(
+    G,
+    growth_steps,
+    ax=None,
+    built=True,
+    x_meter=True,
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    dpi=1000,
+    figsize=(16, 9),
+    **kwargs,
+):
+    fig, ax = _init_fig(ax=ax, figsize=figsize)
+    G_actual = _init_graph(G, growth_steps, built=built)
+    actual_edges = [edge for edge in G_actual.edges]
+    yy = []
+    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
+    sm_final = metrics.get_shortest_network_path_length_matrix(G)
+    for edge in growth_steps:
+        actual_edges.append(tuple(edge))
+        G_actual = G.edge_subgraph(actual_edges)
+        sm_actual = metrics.get_shortest_network_path_length_matrix(G_actual)
+        ids_to_delete = [
+            ids for ids, node in enumerate(G.nodes) if node not in G_actual
+        ]
+        sm_final_trimmed = np.delete(
+            np.delete(sm_final, ids_to_delete, 0), ids_to_delete, 1
+        )
+        mat = metrics._avoid_zerodiv_matrix(sm_final_trimmed, sm_actual)
+        yy.append(np.sum(mat) / np.count_nonzero(mat))
+    ax.set_ylabel("Relative directness")
+    ax.scatter(xx, yy, **kwargs)
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
+    return fig, ax
+
+
 def plot_graph(
     G,
     edge_linewidth=2,
@@ -133,15 +236,12 @@ def plot_graph(
     dpi=200,
     bbox=None,
 ):
-    """Replace with working plotting function not using osmnx, need G.graph["crs"] to exists."""
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize, layout="constrained")
-    else:
-        fig = ax.get_figure()
+    """Plot the graph G with some specified matplotlib parameters, using Geopandas."""
+    fig, ax = _init_fig(ax=ax, figsize=figsize)
     if bbox is not None:
         ax.set_ylim(bbox[0], bbox[1])
         ax.set_xlim(bbox[2], bbox[3])
-    geom_node = [shapely.Point(x, y) for x, y in get_node_positions(G)]
+    geom_node = [shapely.Point(x, y) for y, x in get_node_positions(G)]
     geom_edge = list(nx.get_edge_attributes(G, "geometry").values())
     if isinstance(edge_color, dict):
         edgeidx = [edge for edge in G.edges]
@@ -167,7 +267,17 @@ def plot_graph(
     return fig, ax
 
 
+def _init_fig(ax=None, figsize=(16, 9)):
+    """Initialize the matplotlib figure if not already given."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize, layout="constrained")
+    else:
+        fig = ax.get_figure()
+    return fig, ax
+
+
 def _show_save_close(fig, show=True, save=False, close=False, filepath=None, dpi=1000):
+    """Show, save, and close the given figure."""
     if show:
         plt.show()
     if save:

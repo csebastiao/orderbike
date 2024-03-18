@@ -92,7 +92,7 @@ def prefunc_growth_adaptative_coverage(
                 edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges
             }
             # To avoid infinite loop for very large graph where single edge cannot give more than threshold change anymore
-            if buff_size < min_buff:
+            if buff_size <= min_buff:
                 break
             geom_bef = {
                 edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
@@ -113,14 +113,29 @@ def prefunc_growth_adaptative_coverage(
     }
 
 
-def directness(G, edge):
-    """Get directness of the graph G. Works with growth.dynamic_growth. See prefunc_directness."""
-    mat = get_directness_matrix(G)
+def growth_relative_directness(G, edge, sm_final=[], G_final=None):
+    """Get relative directness of the graph G. Works with growth.dynamic_growth."""
+    sm = get_shortest_network_path_length_matrix(G)
+    ids_to_delete = [ids for ids, node in enumerate(G_final.nodes) if node not in G]
+    sm_final_trimmed = np.delete(
+        np.delete(sm_final, ids_to_delete, 0), ids_to_delete, 1
+    )
+    mat = _avoid_zerodiv_matrix(sm_final_trimmed, sm)
     # Mean directness on all non-null value, a null value means in different components or same node
     return np.sum(mat) / np.count_nonzero(mat)
 
 
-# TODO: Make prefunc directness computing initial euclidean matrix and based on order will remove or add rows so not computing all at every step
+def prefunc_growth_relative_directness(G, order="subtractive", G_final=None):
+    """Pre-compute the final shortesth network path length matrix of the graph."""
+    sm_final = get_shortest_network_path_length_matrix(G_final)
+    return {"sm_final": sm_final, "G_final": G_final}
+
+
+def directness(G, edge):
+    """Get directness of the graph G. Works with growth.dynamic_growth."""
+    mat = get_directness_matrix(G)
+    # Mean directness on all non-null value, a null value means in different components or same node
+    return np.sum(mat) / np.count_nonzero(mat)
 
 
 def get_directness_matrix(G, lonlat=False):

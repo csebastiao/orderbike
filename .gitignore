@@ -230,4 +230,4 @@ pyrightconfig.json
 ## Custom add
 cache
 scripts/cache/
-data/processed/large_files/
+data/processed/ignored_files/
