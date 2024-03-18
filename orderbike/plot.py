@@ -18,16 +18,25 @@ def plot_adaptative_coverage(
     growth_steps,
     ax=None,
     built=True,
+    x_meter=True,
     plot_change=True,
     show_buffer_change=True,
     buff_size=500,
     threshold_change=0.01,
+    min_buff=20,
 ):
     if ax is None:
         fig, ax = plt.subplots()
     G_actual = _init_graph(G, growth_steps, built=built)
     actual_edges = [edge for edge in G_actual.edges]
     yy = []
+    if x_meter:
+        xx = []
+        total_length = sum([G_actual.edges[edge]["length"] for edge in G_actual.edges])
+        ax.set_xlabel("Meters built")
+    else:
+        xx = range(len(growth_steps))
+        ax.set_xlabel("Steps built")
     buffer_change = {}
     for ids, edge in enumerate(growth_steps):
         new_buff = False
@@ -39,7 +48,7 @@ def plot_adaptative_coverage(
         change = (
             shapely.ops.unary_union(geom).area - shapely.ops.unary_union(geom_bef).area
         ) / shapely.ops.unary_union(geom_bef).area
-        while change < threshold_change:
+        while change < threshold_change and buff_size > min_buff:
             new_buff = True
             buff_size = buff_size / 2
             geom = [
@@ -53,17 +62,38 @@ def plot_adaptative_coverage(
                 shapely.ops.unary_union(geom).area
                 - shapely.ops.unary_union(geom_bef).area
             ) / shapely.ops.unary_union(geom_bef).area
-        if new_buff:
-            buffer_change[ids] = buff_size
         if plot_change:
             yy.append(change)
-        else:
+        if x_meter:
+            total_length += G.edges[edge]["length"]
+            xx.append(total_length)
+        if new_buff:
+            if x_meter:
+                buffer_change[total_length] = buff_size
+            else:
+                buffer_change[ids] = buff_size
+    if not plot_change:
+        G_actual = _init_graph(G, growth_steps, built=built)
+        actual_edges = [edge for edge in G_actual.edges]
+        for edge in growth_steps:
+            actual_edges.append(edge)
+            geom = [
+                G.edges[edge]["geometry"].buffer(buff_size) for edge in actual_edges
+            ]
             yy.append(shapely.ops.unary_union(geom).area)
     if plot_change:
+        ax.axhline(
+            threshold_change,
+            color="red",
+            linestyle="dashed",
+            label="Threshold for buffer change",
+        )
         label = "Change in coverage with decreasing buffer"
+        ax.set_ylabel("Change in the coverage")
     else:
+        ax.set_ylabel("Total coverage ($m^2$)")
         label = "Coverage with decreasing buffer"
-    ax.scatter(range(len(growth_steps)), yy, color="blue", label=label)
+    ax.scatter(xx, yy, color="blue", label=label)
     if show_buffer_change:
         for val in buffer_change:
             ax.axvline(
@@ -72,13 +102,6 @@ def plot_adaptative_coverage(
                 linestyle="dashed",
                 label=f"Buffer changing to {buffer_change[val]}m",
             )
-    if plot_change:
-        ax.axhline(
-            threshold_change,
-            color="red",
-            linestyle="dashed",
-            label="Threshold for buffer change",
-        )
     return fig, ax
 
 

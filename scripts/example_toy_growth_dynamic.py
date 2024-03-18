@@ -22,6 +22,10 @@ if __name__ == "__main__":
             for BUILT in [True, False]:
                 # ORDERNAME = "subtractive"
                 # CONNECTED = False
+                kwargs = {}
+                kwargs["G_final"] = G
+                kwargs["buff_size"] = 500
+                kwargs["threshold_change"] = 0.01
                 order_growth = growth.order_dynamic_network_growth(
                     G,
                     built=BUILT,
@@ -29,7 +33,7 @@ if __name__ == "__main__":
                     order=ORDERNAME,
                     metric_func=metrics.growth_coverage,
                     precomp_func=metrics.prefunc_growth_adaptative_coverage,
-                    G_final=G,
+                    **kwargs,
                 )
                 foldername = (
                     "./data/processed/example_toy_growth/adaptative_coverage_"

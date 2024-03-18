@@ -15,6 +15,6 @@ if __name__ == "__main__":
     with open(foldername + "/order_growth.json", "r") as f:
         growth_steps = json.load(f)
     G = utils.load_graph(foldername + "/toy_graph.graphml")
-    fig, ax = plot.plot_adaptative_coverage(G, growth_steps)
+    fig, ax = plot.plot_adaptative_coverage(G, growth_steps, plot_change=False)
     plt.legend()
     plt.show()

@@ -65,6 +65,7 @@ def prefunc_growth_adaptative_coverage(
     G_final=None,
     order_growth=[],
     threshold_change=0.01,
+    min_buff=20,
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and reduce the buffer size if too big."""
     if len(order_growth) > 1:
@@ -90,6 +91,9 @@ def prefunc_growth_adaptative_coverage(
             geom = {
                 edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges
             }
+            # To avoid infinite loop for very large graph where single edge cannot give more than threshold change anymore
+            if buff_size < min_buff:
+                break
             geom_bef = {
                 edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
                 for edge in G_bef.edges
