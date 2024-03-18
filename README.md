@@ -12,7 +12,7 @@ OrderBike is a project where the aim is to find an optimal order of construction
 On the `Bikeplanpic` folder, you will find a non-exhaustive list of images of bicycle network plan of various precision, actually planned or not. The `0_Metadata.md` file list the related informations. Whenever the word datascreen is used instead of picture in the name of an image, it means that the image was apparently made using a GIS software, so a closed or open shapefile should exist.
 This folder serves as an inspiration database to see what bicycle network plan look like, in their final form, and in the imagined evolution of them, with a diversity of size, means, topography...
 
-To find examples of networks, see [UrbanToyGraph](https://github.com/csebastiao/UrbanToyGraph) for toy network looking like some typical urban shapes, or [TransportationNetworks](https://github.com/bstabler/TransportationNetworks) for (more or less simplified) urban networks with Origin-Destination-pairs on them, that are usually used for car traffic engineering.
+To find examples of networks, see [UrbanToyGraph](https://github.com/csebastiao/UrbanToyGraph) for toy network looking like some typical urban shapes, or [TransportationNetworks](https://github.com/bstabler/TransportationNetworks) for (more or less simplified) urban networks with Origin-Destination-pairs on them, that are usually used for car traffic engineering. Another option is to use real street network from [OpenStreetMap](https://www.openstreetmap.org) using [OSMnx](https://github.com/gboeing/osmnx).
 
 ## Installation of OrderBike
 
@@ -44,6 +44,8 @@ pip install -e .
 
 To find an order of growth, you need to define a networkx Graph object that is your bicycle network plan, with on every edge a boolean attribute named `built` to discriminate the part of the network that is already built and the one that is planned. Once you have your network, you need to choose a set of constraints on the growth, and a growth strategy. You then get an order of construction, that can be visualized and analyzed through premade functions.
 
+If you want to make the growth in multiple determined stages, you can simply use the growth function on the final graph after the first stage, then use the growth function on the final graph after the second stage with as built part the first stage, until reaching the last stage. If you want to optimize on different metrics based on reaching some specific values, you can either create a new dynamic metric function changing through time, or you can launch a first time the growth with the first metric on which to optimize, and relaunch it with another metric with the first N steps of the first growth order selected as built.
+
 
 ## Add your own functions for the growth
 
@@ -53,15 +55,15 @@ To add a dynamic metric, you need to respect the following template:
 ```python
 def metricname(G, edge, keyword_arg=0):
   """Here G is the one with the removed or added edge, also given here as edge. The kwargs come from the results of the precomp_metricname."""
-  compute_something = keyword_arg + G * edge
+  compute_something = ...
   return compute_something
 
 def precomp_metricname(G, order="subtractive", keyword_arg=0):
   """Here G is the actual one, before the test of adding/removing one depending on the order of the greedy optimization, also given here as order. The kwargs given in the order_growth function will go here."""
   if order == "subtractive":
-    compute_something = keyword_arg * G
+    compute_something = ...
   elif order == "additive":
-    compute_something = G - keyword_arg
+    compute_something = ...
   return {"keyword_arg_0": compute_something}
 ```
 
@@ -73,7 +75,7 @@ To add a ranking metric, you need to respect the following template:
 ```python
 def rankingname(G, keyword_arg=0):
   """Here G is the final graph."""
-  rank = G + keyword_arg
+  rank = ...
   return rank
 ```
 
