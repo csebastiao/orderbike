@@ -6,13 +6,16 @@ Functions to visualize results of the growth of a graph.
 import os
 
 import cv2
+import geopandas as gpd
 from matplotlib import pyplot as plt
 import networkx as nx
-import osmnx as ox
-import pandas as pd
 import shapely
 
+from .utils import get_node_positions
 
+
+# TODO: Add minimal buffer as plateau so replace buffer smaller than min_buff by min_buff ?
+# TODO: Change buff_size based on relative change, taking into account size of added edge compared to total length of graph ?
 def plot_adaptative_coverage(
     G,
     growth_steps,
@@ -24,9 +27,17 @@ def plot_adaptative_coverage(
     buff_size=500,
     threshold_change=0.01,
     min_buff=20,
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    dpi=1000,
+    figsize=(16, 9),
 ):
     if ax is None:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize, layout="constrained")
+    else:
+        fig = ax.get_figure()
     G_actual = _init_graph(G, growth_steps, built=built)
     actual_edges = [edge for edge in G_actual.edges]
     yy = []
@@ -102,28 +113,69 @@ def plot_adaptative_coverage(
                 linestyle="dashed",
                 label=f"Buffer changing to {buffer_change[val]}m",
             )
+    plt.legend()
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
     return fig, ax
 
 
-def plot_graph(G, show=True, save=False, filepath=None, **kwargs):
+def plot_graph(
+    G,
+    edge_linewidth=2,
+    node_size=6,
+    edge_color="steelblue",
+    node_color="black",
+    ax=None,
+    figsize=(16, 9),
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    dpi=200,
+    bbox=None,
+):
     """Replace with working plotting function not using osmnx, need G.graph["crs"] to exists."""
-    fig, ax = ox.plot_graph(
-        nx.MultiDiGraph(G), show=show, save=save, filepath=filepath, **kwargs
-    )
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize, layout="constrained")
+    else:
+        fig = ax.get_figure()
+    if bbox is not None:
+        ax.set_ylim(bbox[0], bbox[1])
+        ax.set_xlim(bbox[2], bbox[3])
+    geom_node = [shapely.Point(x, y) for x, y in get_node_positions(G)]
+    geom_edge = list(nx.get_edge_attributes(G, "geometry").values())
+    if isinstance(edge_color, dict):
+        edgeidx = [edge for edge in G.edges]
+        new_edge_color = {}
+        for edge in edge_color:
+            if edge not in edgeidx:
+                if tuple(reversed(edge)) in edgeidx:
+                    new_edge_color[tuple(reversed(edge))] = edge_color[edge]
+                else:
+                    raise ValueError(f"{edge} in edge_color is not in G")
+            else:
+                new_edge_color[edge] = edge_color[edge]
+        edge_color = new_edge_color
+    gdf_node = gpd.GeoDataFrame(index=[node for node in G.nodes], geometry=geom_node)
+    gdf_node = gdf_node.assign(color=node_color)
+    gdf_edge = gpd.GeoDataFrame(index=[edge for edge in G.edges], geometry=geom_edge)
+    gdf_edge = gdf_edge.assign(color=edge_color)
+    gdf_edge.plot(ax=ax, color=gdf_edge["color"], zorder=1, linewidth=edge_linewidth)
+    gdf_node.plot(ax=ax, color=gdf_node["color"], zorder=2, markersize=node_size)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
     return fig, ax
 
 
-def make_edge_dict_multidigraph(edge_dict):
-    """Temporary function for as long as using osmnx plotting function"""
-    m_edge_dict = {}
-    for edge in edge_dict:
-        u, v = edge
-        m_edge_dict[u, v, 0] = edge_dict[edge]
-        m_edge_dict[v, u, 0] = edge_dict[edge]
-    return m_edge_dict
+def _show_save_close(fig, show=True, save=False, close=False, filepath=None, dpi=1000):
+    if show:
+        plt.show()
+    if save:
+        fig.savefig(filepath, dpi=dpi)
+    if close:
+        plt.close()
 
 
-# TODO: Redo it by using geopandas directly and not the hellscape of osmnx
 def plot_growth(
     G,
     growth_steps,
@@ -132,6 +184,8 @@ def plot_growth(
     color_built="red",
     color_added="blue",
     color_newest="green",
+    dpi=200,
+    **kwargs,
 ):
     G_init = _init_graph(G, growth_steps, built=built)
     if built:
@@ -139,23 +193,21 @@ def plot_growth(
     else:
         edge_color = {edge: color_newest for edge in G_init.edges}
     # Make first plot only to get a fixed bounding box for plots, being the one for the final graph
-    fig, ax = plot_graph(G, show=False, save=False, close=True)
+    fig, ax = plot_graph(G, show=False, save=False, close=True, dpi=dpi)
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
     bb = [ylim[1], ylim[0], xlim[1], xlim[0]]
     pad = len(str(len(G.edges)))
     fig, ax = plot_graph(
-        nx.MultiDiGraph(G_init),
-        bgcolor="white",
-        node_color="black",
-        node_size=5,
-        edge_color=pd.Series(make_edge_dict_multidigraph(edge_color)),
-        edge_linewidth=2,
+        G_init,
+        edge_color=edge_color,
         save=True,
         show=False,
         filepath=folder_name + f"/step_{0:0{pad}}.png",
         bbox=bb,
         close=True,
+        dpi=dpi,
+        **kwargs,
     )
     if not built:
         edge_color = {edge: color_added for edge in G_init.edges}
@@ -169,17 +221,15 @@ def plot_growth(
             edge_color[old_edge] = color_added
         G_actual = G.edge_subgraph(actual_edges)
         fig, ax = plot_graph(
-            nx.MultiDiGraph(G_actual),
-            bgcolor="white",
-            node_color="black",
-            node_size=5,
-            edge_color=pd.Series(make_edge_dict_multidigraph(edge_color)),
-            edge_linewidth=2,
+            G_actual,
+            edge_color=edge_color,
             save=True,
             show=False,
             filepath=folder_name + f"/step_{ids+1:0{pad}}.png",
             bbox=bb,
             close=True,
+            dpi=dpi,
+            **kwargs,
         )
         old_edge = edge
 

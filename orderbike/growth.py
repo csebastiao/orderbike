@@ -3,7 +3,10 @@
 Functions to make subtractive or additive growth of a graph.
 """
 
+import tqdm
+
 import networkx as nx
+
 from . import metrics
 
 
@@ -67,6 +70,7 @@ def order_dynamic_network_growth(
     order="subtractive",
     metric_func=metrics.growth_coverage,
     precomp_func=metrics.prefunc_growth_coverage,
+    progress_bar=True,
     **kwargs,
 ):
     """
@@ -87,7 +91,11 @@ def order_dynamic_network_growth(
     init_edges = _init_edges(G, built, order)
     G_actual = _init_graph(G, order, init_edges)
     num_step = len(G.edges) - len(init_edges)
-    for i in range(num_step):
+    if progress_bar:
+        total_step = tqdm.tqdm(range(num_step))
+    else:
+        total_step = range(num_step)
+    for i in total_step:
         if precomp_func is not None:
             precomp_kwargs = precomp_func(G_actual, order=order, **kwargs)
         else:

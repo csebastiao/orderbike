@@ -5,8 +5,6 @@ Example script to plot of a basic example of a bridge graph that we want to grow
 
 import json
 
-from matplotlib import pyplot as plt
-
 from orderbike import plot
 from utg import utils
 
@@ -15,6 +13,12 @@ if __name__ == "__main__":
     with open(foldername + "/order_growth.json", "r") as f:
         growth_steps = json.load(f)
     G = utils.load_graph(foldername + "/toy_graph.graphml")
-    fig, ax = plot.plot_adaptative_coverage(G, growth_steps, plot_change=False)
-    plt.legend()
-    plt.show()
+    fig, ax = plot.plot_adaptative_coverage(
+        G,
+        growth_steps,
+        plot_change=False,
+        show=False,
+        save=True,
+        close=True,
+        filepath=foldername + "/coverage.png",
+    )

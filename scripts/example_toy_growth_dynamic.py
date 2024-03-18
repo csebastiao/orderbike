@@ -33,6 +33,7 @@ if __name__ == "__main__":
                     order=ORDERNAME,
                     metric_func=metrics.growth_coverage,
                     precomp_func=metrics.prefunc_growth_adaptative_coverage,
+                    progress_bar=True,
                     **kwargs,
                 )
                 foldername = (
@@ -48,9 +49,16 @@ if __name__ == "__main__":
                 with open(foldername + "/order_growth.json", "w") as f:
                     json.dump(order_growth, f)
                 utils.save_graph(G, foldername + "/toy_graph.graphml")
-                # Necessary as long as using osmnx for plotting function
-                G.graph["crs"] = "epsg:2154"
-                plot.plot_growth(G, order_growth, foldername, built=BUILT)
+                plot.plot_growth(
+                    G,
+                    order_growth,
+                    foldername,
+                    built=BUILT,
+                    color_built="firebrick",
+                    color_added="steelblue",
+                    color_newest="darkgreen",
+                    node_size=8,
+                )
                 plot.make_growth_video(
                     foldername, foldername + "/growth_video.mp4", fps=3
                 )

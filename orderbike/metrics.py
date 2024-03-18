@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 import shapely
 
-from orderbike.utils import dist_vector, get_node_positions
+from .utils import dist_vector, get_node_positions
 
 
 def growth_random(G):
@@ -57,7 +57,7 @@ def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
     }
 
 
-# TODO: Probably better to create a Class for the Growth thing to have some memory of stuff like this ?
+# TODO: Add minimal buffer as plateau so replace buffer smaller than min_buff by min_buff ?
 def prefunc_growth_adaptative_coverage(
     G,
     order="subtractive",
