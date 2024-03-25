@@ -1,4 +1,7 @@
-"""Get the simplified network of Copenhagen, keeping the bicycle network in a single boolean attribute."""
+# -*- coding: utf-8 -*-
+"""
+Get the simplified network of Copenhagen, keeping the bicycle network in a single boolean attribute.
+"""
 import osmnx as ox
 import shapely
 
