@@ -6,26 +6,52 @@ From a list of LineStrings, create a simplified networkx street network of Paris
 import geopandas as gpd
 import momepy as mp
 import networkx as nx
+import osmnx as ox
+import shapely
 
 from orderbike import plot
 
 if __name__ == "__main__":
+    # Read the GeoPackage manually made from QGIS
     gdf = gpd.read_file("./data/processed/plan_paris/mun_edges_all_cleaned.gpkg")
+    # Remove invalid geometry
     gdf_filt = gdf[gdf.geometry.apply(lambda x: True if len(x.geoms) == 1 else False)]
     gdf_ls = gdf_filt.copy()
+    # Transform MultiLineString into LineString
     gdf_ls.geometry = gdf_ls.geometry.apply(lambda x: x.geoms[0])
-    gdf_simp = mp.remove_false_nodes(gdf_ls)
-    G = mp.gdf_to_nx(gdf_simp, multigraph=True, directed=False, length="length")
+    # Get a networkx MultiDigraph and add node coordinates
+    G = mp.gdf_to_nx(gdf_ls, multigraph=True, directed=True, length="length")
     for n in G:
         G.nodes[n]["x"] = n[0]
         G.nodes[n]["y"] = n[1]
-    G = nx.convert_node_labels_to_integers(G)
+    H = G.copy()
+    # Segmentize by having all edges being straight edges so osmnx can simplify it
+    for e in G.edges:
+        coord = G.edges[e]["geometry"].coords[:]
+        if len(G.edges[e]["geometry"].coords[:]) > 2:
+            attr = G.edges[e]["attribute"]
+            for i in range(len(coord) - 1):
+                H.add_node(coord[i + 1], x=coord[i + 1][0], y=coord[i + 1][1])
+                egeom = shapely.LineString([coord[i], coord[i + 1]])
+                H.add_edge(
+                    coord[i],
+                    coord[i + 1],
+                    0,
+                    geometry=egeom,
+                    length=egeom.length,
+                    attribute=attr,
+                )
+            H.remove_edge(*e)
+    H = nx.convert_node_labels_to_integers(H)
+    # Simplify while keeping the attribute about built and planned discriminated
+    H = ox.simplify_graph(H, endpoint_attrs=["attribute"])
     ec = {}
-    for edge in G.edges:
-        if G.edges[edge]["attribute"] == "built":
-            ec[edge] = "red"
-        elif G.edges[edge]["attribute"] == "planned":
+    for edge in H.edges:
+        if H.edges[edge]["attribute"] == "built":
             ec[edge] = "green"
+        elif H.edges[edge]["attribute"] == "planned":
+            ec[edge] = "red"
         else:
             ec[edge] = "gray"
-    plot.plot_graph(G, edge_color=ec, save=False, show=True, close=False)
+    plot.plot_graph(H, edge_color=ec, save=False, show=True, close=False)
+    ox.save_graphml(H, filepath="./data/processed/plan_paris/paris_bikeplan.graphml")
