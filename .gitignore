@@ -231,3 +231,4 @@ pyrightconfig.json
 cache
 scripts/cache/
 data/processed/ignored_files/
+data/processed/plan_paris/ignored_growth/
