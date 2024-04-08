@@ -132,8 +132,7 @@ def _init_edges(G, built, order):
             closeness = nx.closeness_centrality(G, distance="length")
             edge_closeness = {}
             for edge in G.edges:
-                u, v = edge
-                edge_closeness[edge] = (closeness[u] + closeness[v]) / 2
+                edge_closeness[edge] = (closeness[edge[0]] + closeness[edge[1]]) / 2
             return [tuple(max(edge_closeness, key=edge_closeness.get))]
 
 

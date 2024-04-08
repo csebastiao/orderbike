@@ -18,35 +18,42 @@ if __name__ == "__main__":
     rankings = {}
     rankings["random"] = metrics.growth_random
     rankings["betweenness"] = metrics.growth_betweenness
-    ORDERNAME = "subtractive"
-    CONNECTED = True
-    BUILT = True
-    r = "random"
-    order_growth = growth.order_ranked_network_growth(
-        G,
-        built=BUILT,
-        keep_connected=CONNECTED,
-        order=ORDERNAME,
-        ranking_func=rankings[r],
-    )
-    foldername = "./data/processed/plan_paris/" + r + "_" + ORDERNAME
-    if CONNECTED:
-        foldername += "_connected"
-    if BUILT:
-        foldername += "_built"
-    if not os.path.exists(foldername):
-        os.makedirs(foldername)
-    with open(foldername + "/order_growth.json", "w") as f:
-        json.dump(order_growth, f)
-    utils.save_graph(G, foldername + "/graph.graphml")
-    plot.plot_growth(
-        G,
-        order_growth,
-        foldername,
-        built=BUILT,
-        color_built="firebrick",
-        color_added="steelblue",
-        color_newest="darkgreen",
-        node_size=8,
-    )
-    plot.make_growth_video(foldername, foldername + "/growth_video.mp4", fps=3)
+    for r in rankings:
+        for ORDERNAME in ["subtractive", "additive"]:
+            for CONNECTED in [True, False]:
+                for BUILT in [True, False]:
+                    order_growth = growth.order_ranked_network_growth(
+                        G,
+                        built=BUILT,
+                        keep_connected=CONNECTED,
+                        order=ORDERNAME,
+                        ranking_func=rankings[r],
+                    )
+                    foldername = (
+                        "./data/processed/plan_paris/ignored_growth/"
+                        + r
+                        + "_"
+                        + ORDERNAME
+                    )
+                    if CONNECTED:
+                        foldername += "_connected"
+                    if BUILT:
+                        foldername += "_built"
+                    if not os.path.exists(foldername):
+                        os.makedirs(foldername)
+                    with open(foldername + "/order_growth.json", "w") as f:
+                        json.dump(order_growth, f)
+                    utils.save_graph(G, foldername + "/graph.graphml")
+                    plot.plot_growth(
+                        G,
+                        order_growth,
+                        foldername,
+                        built=BUILT,
+                        color_built="firebrick",
+                        color_added="steelblue",
+                        color_newest="darkgreen",
+                        node_size=8,
+                    )
+                    plot.make_growth_video(
+                        foldername, foldername + "/growth_video.mp4", fps=3
+                    )

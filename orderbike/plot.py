@@ -248,8 +248,12 @@ def plot_graph(
         new_edge_color = {}
         for edge in edge_color:
             if edge not in edgeidx:
-                if tuple(reversed(edge)) in edgeidx:
-                    new_edge_color[tuple(reversed(edge))] = edge_color[edge]
+                if len(edge) == 3:
+                    reverse = tuple([edge[1], edge[0], edge[2]])
+                else:
+                    reverse = tuple(reversed(edge))
+                if reverse in edgeidx:
+                    new_edge_color[reverse] = edge_color[edge]
                 else:
                     raise ValueError(f"{edge} in edge_color is not in G")
             else:
@@ -306,7 +310,7 @@ def plot_growth(
     fig, ax = plot_graph(G, show=False, save=False, close=True, dpi=dpi)
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    bb = [ylim[1], ylim[0], xlim[1], xlim[0]]
+    bb = [ylim[0], ylim[1], xlim[0], xlim[1]]
     pad = len(str(len(G.edges)))
     fig, ax = plot_graph(
         G_init,

@@ -59,5 +59,4 @@ if __name__ == "__main__":
             H.edges[e]["built"] = 1
         elif H.edges[e]["attribute"] == "planned":
             H.edges[e]["built"] = 0
-    H.remove_a
     ox.save_graphml(H, filepath="./data/processed/plan_paris/paris_bikeplan.graphml")
