@@ -10,7 +10,7 @@ import networkx as nx
 from . import metrics
 
 
-# TODO: Add logging to make sure to always understand what in ranked and dynamic network growth
+# TODO: Add logging to make sure to always understand what is happenning in ranked and dynamic network growth
 def order_ranked_network_growth(
     G,
     built=True,
@@ -91,10 +91,9 @@ def order_dynamic_network_growth(
     init_edges = _init_edges(G, built, order)
     G_actual = _init_graph(G, order, init_edges)
     num_step = len(G.edges) - len(init_edges)
+    total_step = range(num_step)
     if progress_bar:
-        total_step = tqdm.tqdm(range(num_step))
-    else:
-        total_step = range(num_step)
+        total_step = tqdm.tqdm(total_step)
     for i in total_step:
         if precomp_func is not None:
             precomp_kwargs = precomp_func(G_actual, order=order, **kwargs)
@@ -177,6 +176,10 @@ def _update_actual_graph(G, G_actual, step, order):
     """Remove or add the chosen step to the actual graph."""
     if order == "subtractive":
         G_actual.remove_edge(*step)
+        # Remove isolated node from the graph
+        for n in step[:2]:
+            if nx.degree(G_actual, n) == 0:
+                G_actual.remove_node(n)
     elif order == "additive":
         actual_edges = list(G_actual.edges)
         actual_edges.append(step)
@@ -195,7 +198,7 @@ def get_subtractive_invalid_edges(G, built=True):
     Returns:
         list: List of tuple, each tuple being an invalid edge to remove from G.
     """
-    # Find all bridges and remove bridges that when remove leave an isolated node
+    # Find all bridges and remove bridges that when removed leave an isolated node
     invalid_edges = [
         edge
         for edge in nx.bridges(G)

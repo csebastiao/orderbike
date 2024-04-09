@@ -7,7 +7,7 @@ multidigraph to a graph.
 
 import numpy as np
 from haversine import haversine, haversine_vector
-from networkx import Graph, get_node_attributes
+from networkx import Graph, get_node_attributes, set_edge_attributes
 from osmnx import get_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
@@ -105,6 +105,9 @@ def multidigraph_to_graph(G):
     Transform a spatial networkx.MultiDiGraph into a networkx.Graph, keeping all edges by adding artificial nodes. We need to add two  nodes inside a self-loop, and one node for each parallel paths between two nodes.
     """
     G = G.copy()
+    # Make compatible with osmnx function
+    if "osmid" not in list(G.edges(data=True))[0][2].keys():
+        set_edge_attributes(G, 0, "osmid")
     # Use osmnx function that keep all edges that have different geometries
     G = get_undirected(G)
     # Put list of node as independent variable to make changes on the graph in the loop
