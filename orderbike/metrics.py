@@ -25,31 +25,44 @@ def growth_betweenness(G, weight="length"):
     return [key for key, val in sorted(ebet.items(), key=lambda x: x[1], reverse=True)]
 
 
+def growth_closeness(G, weight="length"):
+    """Return the list of all edges of G ranked in descending order of edge closeness, as the mean of their closeness nodes."""
+    nclo = nx.closeness_centrality(G, distance=weight)
+    eclo = {e: (nclo[e[0]] + nclo[e[1]]) / 2 for e in G.edges}
+    return [key for key, val in sorted(eclo.items(), key=lambda x: x[1], reverse=True)]
+
+
 def growth_coverage(
-    G, edge, pregraph=None, order="subtractive", geom={}, actual_area=0, buff_size=200
+    G,
+    edge,
+    order,
+    pregraph=None,
+    geom={},
+    actual_area=0,
+    buff_size=200,
+    min_buff=25,
+    threshold_change=0.01,
 ):
-    """Get coverage of the graph G. Works with growth.dynamic_growth function. See prefunc_growth_coverage."""
+    """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptative_coverage and upfunc_growth_adaptative_coverage for adaptative coverage."""
     geom_new = geom.copy()
     if order == "subtractive":
         geom_new.pop(edge)
-    if order == "additive":
+    elif order == "additive":
         geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
     new_area = shapely.ops.unary_union(list(geom_new.values())).area
-    if order == "subtractive":
-        return (actual_area - new_area) / pregraph.edges[edge]["length"]
-    elif order == "additive":
-        return (new_area - actual_area) / G.edges[edge]["length"]
-    else:
-        raise ValueError(
-            f"Incorrect value {order} for order, please choose subtractive or additive."
-        )
+    # If additive, the max is one increasing the most the area
+    # If subtractive, since new_area - actual_area <= 0 the max is one changing less the area
+    return (new_area - actual_area) / G.edges[edge]["length"]
 
 
-def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
+def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
-    geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
+    geom = {
+        edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
+        for edge in G_actual.edges
+    }
     return {
-        "pregraph": G,
+        "pregraph": G_actual,
         "order": order,
         "geom": geom,
         "actual_area": shapely.ops.unary_union(list(geom.values())).area,
@@ -57,63 +70,79 @@ def prefunc_growth_coverage(G, order="subtractive", buff_size=200):
     }
 
 
-# TODO: Add minimal buffer as plateau so replace buffer smaller than min_buff by min_buff ?
+def upfunc_growth_coverage(
+    G, G_actual, step, order, buff_size=200, geom=None, actual_area=0
+):
+    if order == "subtractive":
+        geom.pop(step)
+    elif order == "additive":
+        geom[step] = G.edges[step]["geometry"].buffer(buff_size)
+    return {
+        "pregraph": G_actual,
+        "order": order,
+        "geom": geom,
+        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "buff_size": buff_size,
+    }
+
+
 def prefunc_growth_adaptative_coverage(
+    G_actual, G_final, order, buff_size=400, min_buff=25, threshold_change=0.01
+):
+    """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
+    geom = {
+        edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
+        for edge in G_actual.edges
+    }
+    return {
+        "pregraph": G_actual,
+        "order": order,
+        "geom": geom,
+        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "buff_size": buff_size,
+        "min_buff": min_buff,
+        "threshold_change": threshold_change,
+    }
+
+
+def upfunc_growth_adaptative_coverage(
     G,
-    order="subtractive",
-    buff_size=500,
-    G_final=None,
-    order_growth=[],
+    G_actual,
+    step,
+    order,
+    buff_size=400,
+    min_buff=25,
     threshold_change=0.01,
-    min_buff=20,
+    geom=None,
+    actual_area=0,
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and reduce the buffer size if too big."""
-    if len(order_growth) > 1:
-        if order == "subtractive":
-            edges_bef = list(G.edges)
-            edges_bef.append(tuple([order_growth[-1]]))
-            G_bef = G_final.edge_subgraph(edges_bef)
-        elif order == "additive":
-            G_bef = G.copy()
-            G_bef.remove_edge(*order_growth[-1])
-        geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
-        geom_bef = {
-            edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
-            for edge in G_bef.edges
-        }
-        change = (
-            shapely.ops.unary_union(list(geom.values())).area
-            - shapely.ops.unary_union(list(geom_bef.values())).area
-        ) / shapely.ops.unary_union(list(geom_bef.values())).area
-        # Since there is no memory in the precomp function we need to always recompute the actual buffer size
-        while change < threshold_change:
+    if order == "subtractive":
+        geom.pop(step)
+    elif order == "additive":
+        geom[step] = G.edges[step]["geometry"].buffer(buff_size)
+    new_area = shapely.ops.unary_union(list(geom.values())).area
+    if buff_size > min_buff:
+        change = (new_area - actual_area) / actual_area
+        if change < threshold_change:
             buff_size = buff_size / 2
+            if buff_size <= min_buff:
+                buff_size = min_buff
             geom = {
                 edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges
             }
-            # To avoid infinite loop for very large graph where single edge cannot give more than threshold change anymore
-            if buff_size <= min_buff:
-                break
-            geom_bef = {
-                edge: G_bef.edges[edge]["geometry"].buffer(buff_size)
-                for edge in G_bef.edges
-            }
-            change = (
-                shapely.ops.unary_union(list(geom.values())).area
-                - shapely.ops.unary_union(list(geom_bef.values())).area
-            ) / shapely.ops.unary_union(list(geom_bef.values())).area
-    else:
-        geom = {edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges}
     return {
         "pregraph": G,
         "order": order,
         "geom": geom,
-        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "actual_area": new_area,
         "buff_size": buff_size,
+        "min_buff": min_buff,
+        "threshold_change": threshold_change,
     }
 
 
-def growth_relative_directness(G, edge, sm_final=[], G_final=None):
+def growth_relative_directness(G, edge, sm_final=[], G_final=None, order=None):
     """Get relative directness of the graph G. Works with growth.dynamic_growth."""
     sm = get_shortest_network_path_length_matrix(G)
     ids_to_delete = [ids for ids, node in enumerate(G_final.nodes) if node not in G]
@@ -125,10 +154,29 @@ def growth_relative_directness(G, edge, sm_final=[], G_final=None):
     return np.sum(mat) / np.count_nonzero(mat)
 
 
-def prefunc_growth_relative_directness(G, order="subtractive", G_final=None):
+def prefunc_growth_relative_directness(G, G_final, order):
     """Pre-compute the final shortesth network path length matrix of the graph."""
     sm_final = get_shortest_network_path_length_matrix(G_final)
-    return {"sm_final": sm_final, "G_final": G_final}
+    return {"sm_final": sm_final, "G_final": G_final, "order": order}
+
+
+def upfunc_growth_relative_directness(G, G_final, step, order):
+    """Pre-compute the final shortesth network path length matrix of the graph."""
+    return prefunc_growth_relative_directness(G, G_final, order)
+
+
+# def growth_directness(G, edge, em=[]):
+#     sm = get_shortest_network_path_length_matrix(G)
+#     mat = _avoid_zerodiv_matrix(em, sm)
+#     # Mean directness on all non-null value, a null value means in different components or same node
+#     return np.sum(mat) / np.count_nonzero(mat)
+#
+# def prefunc_growth_directness(G_actual, G, order):
+#     pass
+#     # return {"em":get_euclidean_distance_matrix(G_actual)}
+#
+# def upfunc_growth_directness(G, G_final, step, order):
+#     pass
 
 
 def directness(G, edge):

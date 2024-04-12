@@ -68,8 +68,10 @@ def order_dynamic_network_growth(
     built=True,
     keep_connected=True,
     order="subtractive",
-    metric_func=metrics.growth_coverage,
-    precomp_func=metrics.prefunc_growth_coverage,
+    metric="coverage",
+    metric_func=None,
+    precomp_func=None,
+    update_func=None,
     progress_bar=True,
     **kwargs,
 ):
@@ -81,12 +83,24 @@ def order_dynamic_network_growth(
         built (bool, optional): If True, the graph will be initialized with all edges having as an attribute "built" = 1. Else it will be initialized with an arbitrary edge of the node with the highest closeness value. Defaults to True.
         keep_connected (bool, optional): If True, the number of components of G will be as small as possible for all the growth, restricting the list of edges that can be added. Defaults to True.
         order (str, optional): Either subtractive or additive. Gives the order for the greedy optimization. The subtractive (resp. additive) start from the final (resp. initial) graph and remove (resp. add) edges until reaching the initial graph (resp. final). Defaults to "subtractive".
-        metric_func (function, optional): The function computing the metric on G. Defaults to metrics.get_coverage.
-        precomp_func (function, optional): A sister function to metric_func to compute values before the loop on all valid edges. Defaults to metrics.prefunc_coverage.
+        metric (str, optional): The name of the metric used, automatically fill metric_func, precomp_func, and update_func. See _metric_dictionaries.
+        metric_func (function, optional): The function computing the metric on G. Defaults to None.
+        precomp_func (function, optional): A sister function to metric_func to compute values before the growth steps. Default to None.
+        update_func (function, optional): A sister function to metric_func to update values at each steps. Default to None.
 
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
+    if metric is not None:
+        metric_dict = _metric_dictionaries()[metric]
+        metric_func = metric_dict["metric_func"]
+        precomp_func = metric_dict["precomp_func"]
+        update_func = metric_dict["update_func"]
+    else:
+        if metric_func is None:
+            raise ValueError(
+                "Plaise enter either a metric name or functions to compute growth"
+            )
     order_growth = []
     init_edges = _init_edges(G, built, order)
     G_actual = _init_graph(G, order, init_edges)
@@ -94,11 +108,11 @@ def order_dynamic_network_growth(
     total_step = range(num_step)
     if progress_bar:
         total_step = tqdm.tqdm(total_step)
+    if precomp_func is not None:
+        precomp_kwargs = precomp_func(G_actual, G, order, **kwargs)
+    else:
+        precomp_kwargs = kwargs
     for i in total_step:
-        if precomp_func is not None:
-            precomp_kwargs = precomp_func(G_actual, order=order, **kwargs)
-        else:
-            precomp_kwargs = kwargs
         valid_edges = _valid_edges(
             G, G_actual, init_edges, built, keep_connected, order
         )
@@ -112,9 +126,34 @@ def order_dynamic_network_growth(
         step = max(zip(metric_vals, valid_edges))[1]
         G_actual = _update_actual_graph(G, G_actual, step, order)
         order_growth.append(step)
+        if update_func is not None:
+            precomp_kwargs = update_func(G, G_actual, step, **precomp_kwargs)
     if order == "subtractive":
         order_growth.reverse()
     return order_growth
+
+
+def _metric_dictionaries():
+    metrics_dict = {}
+    metrics_dict["relative_directness"] = {
+        "metric_func": metrics.growth_relative_directness,
+        "precomp_func": metrics.prefunc_growth_relative_directness,
+    }
+    metrics_dict["directness"] = {
+        "metric_func": metrics.directness,
+        "precomp_func": None,
+    }
+    metrics_dict["coverage"] = {
+        "metric_func": metrics.growth_coverage,
+        "precomp_func": metrics.prefunc_growth_coverage,
+        "update_func": metrics.upfunc_growth_coverage,
+    }
+    metrics_dict["adaptative_coverage"] = {
+        "metric_func": metrics.growth_coverage,
+        "precomp_func": metrics.prefunc_growth_adaptative_coverage,
+        "update_func": metrics.upfunc_growth_coverage,
+    }
+    return metrics_dict
 
 
 def _init_edges(G, built, order):
