@@ -138,10 +138,12 @@ def _metric_dictionaries():
     metrics_dict["relative_directness"] = {
         "metric_func": metrics.growth_relative_directness,
         "precomp_func": metrics.prefunc_growth_relative_directness,
+        "update_func": None,
     }
     metrics_dict["directness"] = {
         "metric_func": metrics.directness,
         "precomp_func": None,
+        "update_func": None,
     }
     metrics_dict["coverage"] = {
         "metric_func": metrics.growth_coverage,
@@ -151,7 +153,7 @@ def _metric_dictionaries():
     metrics_dict["adaptative_coverage"] = {
         "metric_func": metrics.growth_coverage,
         "precomp_func": metrics.prefunc_growth_adaptative_coverage,
-        "update_func": metrics.upfunc_growth_coverage,
+        "update_func": metrics.upfunc_growth_adaptative_coverage,
     }
     return metrics_dict
 

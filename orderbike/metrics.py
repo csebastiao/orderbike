@@ -45,14 +45,16 @@ def growth_coverage(
 ):
     """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptative_coverage and upfunc_growth_adaptative_coverage for adaptative coverage."""
     geom_new = geom.copy()
+    # If subtractive, since new_area - actual_area <= 0 the max is one changing less the area
     if order == "subtractive":
         geom_new.pop(edge)
+        new_area = shapely.ops.unary_union(list(geom_new.values())).area
+        return (new_area - actual_area) / pregraph.edges[edge]["length"]
+    # If additive, the max is one increasing the most the area
     elif order == "additive":
         geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
-    new_area = shapely.ops.unary_union(list(geom_new.values())).area
-    # If additive, the max is one increasing the most the area
-    # If subtractive, since new_area - actual_area <= 0 the max is one changing less the area
-    return (new_area - actual_area) / G.edges[edge]["length"]
+        new_area = shapely.ops.unary_union(list(geom_new.values())).area
+        return (new_area - actual_area) / G.edges[edge]["length"]
 
 
 def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
@@ -71,7 +73,7 @@ def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
 
 
 def upfunc_growth_coverage(
-    G, G_actual, step, order, buff_size=200, geom=None, actual_area=0
+    G, G_actual, step, order, buff_size=200, geom=None, actual_area=0, pregraph=None
 ):
     if order == "subtractive":
         geom.pop(step)
@@ -115,6 +117,7 @@ def upfunc_growth_adaptative_coverage(
     threshold_change=0.01,
     geom=None,
     actual_area=0,
+    pregraph=None,
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and reduce the buffer size if too big."""
     if order == "subtractive":
