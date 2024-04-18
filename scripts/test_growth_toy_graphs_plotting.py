@@ -4,6 +4,7 @@ import pathlib
 import json
 import pandas as pd
 import seaborn as sns
+import numpy as np
 from matplotlib import pyplot as plt
 from utg import utils as utgut
 
@@ -32,6 +33,8 @@ if __name__ == "__main__":
             fold
             for fold in pathlib.Path(toy_graph_folder).iterdir()
             if not fold.is_file()
+            and "plot" not in str(fold)
+            and ".DS_Store" not in str(fold)
         ]:
             # For random trials, open all trials
             if "random_trials" in str(growth_f):
@@ -60,7 +63,6 @@ if __name__ == "__main__":
             else:
                 fig, ax = plt.subplots(figsize=(16, 9))
                 ax.set_title(f"{str(toy_graph_folder).split("/")[-1]}, {met}")
-                leg = []
                 # Add all growth strategies for a single metric
                 for idx, (key, df) in enumerate(sorted(df_graph.items())):
                     # Put different marker based on order
@@ -77,9 +79,45 @@ if __name__ == "__main__":
                         label=key,
                         marker=markerstyle,
                     )
-                # Add random order by putting the mean with an enveloppe of standard deviation
-                # Or add the max
-                plt.legend()
+                # Add random trial, put 50 for median, 0 for min, 100 for max
+                perc = 50
+                # Compute the sum of all values so the highest sum is the highest area under curve so the better performing
+                val_ra = np.sum(
+                    [random_add[i][met].values for i in range(len(random_add))], axis=1
+                )
+                # Find the DataFrame of the random trial at the chosen percentile
+                med_ra = random_add[
+                    list(val_ra).index(
+                        np.percentile(val_ra, perc, interpolation="nearest")
+                    )
+                ]
+                sns.lineplot(
+                    data=med_ra,
+                    x="xx",
+                    y=met,
+                    ax=ax,
+                    color=color_palette[-2],
+                    label=f"random_{perc}th percentile_additive",
+                    marker="^",
+                )
+                val_rs = np.sum(
+                    [random_sub[i][met].values for i in range(len(random_sub))], axis=1
+                )
+                med_rs = random_sub[
+                    list(val_rs).index(
+                        np.percentile(val_rs, perc, interpolation="nearest")
+                    )
+                ]
+                sns.lineplot(
+                    data=med_rs,
+                    x="xx",
+                    y=met,
+                    ax=ax,
+                    color=color_palette[-1],
+                    label=f"random_{perc}th percentile_subtractive",
+                    marker="o",
+                )
                 ax.set_xlabel("Meters built")
+                plt.tight_layout()
                 plt.savefig(plotpath + f"/{met}.png", dpi=200)
                 plt.close()
