@@ -1,5 +1,4 @@
-"""Script to find growth order on Paris bikeplan."""
-# STILL NEED TO CHECK IF WORKING WITH MULTIGRAPH
+"""Script to find growth order on 3 urban toy graphs."""
 
 import os
 import json
@@ -46,13 +45,14 @@ if __name__ == "__main__":
                 "directness",
                 "relative_directness",
             ]:
-                order_growth = growth.order_dynamic_network_growth(
+                metrics_dict, order_growth = growth.order_dynamic_network_growth(
                     G_graph[name],
                     built=BUILT,
                     keep_connected=CONNECTED,
                     order=ORDERNAME,
                     metric=METRICNAME,
                     progress_bar=False,
+                    save_metrics=True,
                 )
                 foldername = (
                     "./data/processed/ignored_files/utg/"
@@ -70,6 +70,8 @@ if __name__ == "__main__":
                     os.makedirs(foldername)
                 with open(foldername + "/order_growth.json", "w") as f:
                     json.dump(order_growth, f)
+                with open(foldername + "/metrics_growth.json", "w") as f:
+                    json.dump(metrics_dict, f)
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -113,12 +115,13 @@ if __name__ == "__main__":
                     x_meter=True,
                 )
             for METRICNAME in ranking_func:
-                order_growth = growth.order_ranked_network_growth(
+                metrics_dict, order_growth = growth.order_ranked_network_growth(
                     G_graph[name],
                     built=BUILT,
                     keep_connected=CONNECTED,
                     order=ORDERNAME,
                     ranking_func=ranking_func[METRICNAME],
+                    save_metrics=True,
                 )
                 foldername = (
                     "./data/processed/ignored_files/utg/"
@@ -136,6 +139,8 @@ if __name__ == "__main__":
                     os.makedirs(foldername)
                 with open(foldername + "/order_growth.json", "w") as f:
                     json.dump(order_growth, f)
+                with open(foldername + "/metrics_growth.json", "w") as f:
+                    json.dump(metrics_dict, f)
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -193,12 +198,15 @@ if __name__ == "__main__":
             if not os.path.exists(foldername):
                 os.makedirs(foldername)
             for i in range(1000):
-                order_growth = growth.order_ranked_network_growth(
+                metrics_dict, order_growth = growth.order_ranked_network_growth(
                     G_graph[name],
                     built=BUILT,
                     keep_connected=CONNECTED,
                     order=ORDERNAME,
                     ranking_func=metrics.growth_random,
+                    save_metrics=True,
                 )
                 with open(foldername + f"/order_growth_{i:03}.json", "w") as f:
                     json.dump(order_growth, f)
+                with open(foldername + f"/metrics_growth_{i:03}.json", "w") as f:
+                    json.dump(metrics_dict, f)

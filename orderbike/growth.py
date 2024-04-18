@@ -6,6 +6,8 @@ Functions to make subtractive or additive growth of a graph.
 import tqdm
 
 import networkx as nx
+import numpy as np
+import shapely
 
 from . import metrics
 
@@ -17,6 +19,8 @@ def order_ranked_network_growth(
     keep_connected=True,
     order="subtractive",
     ranking_func=metrics.growth_random,
+    save_metrics=True,
+    buff_size_metrics=200,
     **kwargs,
 ):
     """
@@ -28,6 +32,9 @@ def order_ranked_network_growth(
         keep_connected (bool, optional): If True, the number of components of G will be as small as possible for all the growth, restricting the list of edges that can be added. Defaults to True.
         order (str, optional): Either subtractive or additive. Gives the order for the greedy optimization. The subtractive (resp. additive) start from the final (resp. initial) graph and remove (resp. add) edges until reaching the initial graph (resp. final). Defaults to "subtractive".
         ranking_func (function, optional): The function computing the ranking on G, in descending order. Defaults to metrics.growth_random.
+        save_metrics (bool, optional): If True, compute all the metrics on the graph for the growth and return it as a dictionary. Defaults to True.
+        buff_size_metrics (int, optional): Size of the buffer in the computation of the metric for the growth. Defaults to 200.
+
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
@@ -60,6 +67,11 @@ def order_ranked_network_growth(
         # Since in subtractive order without a built part we don't initialize edges, we need to remove the first edge of the ranking
         if order == "subtractive" and built is False:
             order_growth = order_growth[1:]
+    if save_metrics:
+        metrics_dict = compute_metrics(
+            G, order_growth, built=built, x_meter=True, buff_size=buff_size_metrics
+        )
+        return metrics_dict, order_growth
     return order_growth
 
 
@@ -73,6 +85,8 @@ def order_dynamic_network_growth(
     precomp_func=None,
     update_func=None,
     progress_bar=True,
+    save_metrics=True,
+    buff_size_metrics=200,
     **kwargs,
 ):
     """
@@ -85,8 +99,10 @@ def order_dynamic_network_growth(
         order (str, optional): Either subtractive or additive. Gives the order for the greedy optimization. The subtractive (resp. additive) start from the final (resp. initial) graph and remove (resp. add) edges until reaching the initial graph (resp. final). Defaults to "subtractive".
         metric (str, optional): The name of the metric used, automatically fill metric_func, precomp_func, and update_func. See _metric_dictionaries.
         metric_func (function, optional): The function computing the metric on G. Defaults to None.
-        precomp_func (function, optional): A sister function to metric_func to compute values before the growth steps. Default to None.
-        update_func (function, optional): A sister function to metric_func to update values at each steps. Default to None.
+        precomp_func (function, optional): A sister function to metric_func to compute values before the growth steps. Defaults to None.
+        update_func (function, optional): A sister function to metric_func to update values at each steps. Defaults to None.
+        save_metrics (bool, optional): If True, compute all the metrics on the graph for the growth and return it as a dictionary. Defaults to True.
+        buff_size_metrics (int, optional): Size of the buffer in the computation of the metric for the growth. Defaults to 200.
 
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
@@ -130,6 +146,11 @@ def order_dynamic_network_growth(
             precomp_kwargs = update_func(G, G_actual, step, **precomp_kwargs)
     if order == "subtractive":
         order_growth.reverse()
+    if save_metrics:
+        metrics_dict = compute_metrics(
+            G, order_growth, built=built, x_meter=True, buff_size=buff_size_metrics
+        )
+        return metrics_dict, order_growth
     return order_growth
 
 
@@ -155,6 +176,91 @@ def _metric_dictionaries():
         "precomp_func": metrics.prefunc_growth_adaptative_coverage,
         "update_func": metrics.upfunc_growth_adaptative_coverage,
     }
+    return metrics_dict
+
+
+def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
+    """
+    Compute all relevant metrics for the growth of a graph
+
+    Args:
+        G (networkx.Graph): Final graph. The initial graph from where we grow is based on the built attribute.
+        order_growth (list): List of ordered edges as tuple to add to the inital graph to go to the final graph G.
+        built (bool, optional): If True, the graph will be initialized with all edges having as an attribute "built" = 1. Else it will be initialized with an arbitrary edge of the node with the highest closeness value. Defaults to True.
+        x_meter (bool, optional): To add the total length at each step as a metric. Defaults to True.
+        buff_size (int, optional): Size of the buffer used to compute the coverage. Defaults to 200.
+
+    Returns:
+        dict: Dictionary with name of the metric as keys and values in order of growth as values.
+    """
+    if built:
+        G_actual = G.edge_subgraph(
+            [edge for edge in G.edges if G.edges[edge]["built"] == 1]
+        )
+    else:
+        # Edges need to be tuple in order growth in order to work !!!
+        for edge in G.edges:
+            if edge not in order_growth:
+                if len(edge) == 3:
+                    reverse = [edge[1], edge[0], edge[2]]
+                else:
+                    reverse = tuple(reversed(edge))
+                if reverse not in order_growth:
+                    G_actual = G.edge_subgraph([edge])
+                    break
+    actual_edges = [edge for edge in G_actual.edges]
+    xx = []
+    if x_meter:
+        total_length = sum([G_actual.edges[edge]["length"] for edge in G_actual.edges])
+        for step in order_growth:
+            total_length += G.edges[step]["length"]
+            xx.append(total_length)
+    else:
+        xx = range(len(order_growth))
+    geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
+    coverage = []
+    directness = []
+    relative_directness = []
+    # Should add computation of global and local efficiency to compare with GrowBike
+    num_cc = []
+    length_lcc = []
+    fsm = metrics.get_shortest_network_path_length_matrix(G)
+    for edge in order_growth:
+        actual_edges.append(edge)
+        G_actual = G.edge_subgraph(actual_edges)
+        geom.append(G.edges[edge]["geometry"].buffer(buff_size))
+        coverage.append(shapely.ops.unary_union(geom).area)
+        directness.append(metrics.directness(G_actual, 1))
+        ids_to_delete = [
+            ids for ids, node in enumerate(G.nodes) if node not in G_actual
+        ]
+        fsmt = np.delete(np.delete(fsm, ids_to_delete, 0), ids_to_delete, 1)
+        mat = metrics._avoid_zerodiv_matrix(
+            fsmt, metrics.get_shortest_network_path_length_matrix(G_actual)
+        )
+        relative_directness.append(np.sum(mat) / np.count_nonzero(mat))
+        cc = list(nx.connected_components(G_actual))
+        num_cc.append(len(cc))
+        length_lcc.append(
+            max(
+                [
+                    sum(
+                        [
+                            G_actual.edges[e]["length"]
+                            for e in G_actual.subgraph(comp).edges
+                        ]
+                    )
+                    for comp in cc
+                ]
+            )
+        )
+    metrics_dict = {}
+    metrics_dict["xx"] = xx
+    metrics_dict["coverage"] = coverage
+    metrics_dict["directness"] = directness
+    metrics_dict["relative_directness"] = relative_directness
+    metrics_dict["num_cc"] = num_cc
+    metrics_dict["length_lcc"] = length_lcc
     return metrics_dict
 
 
