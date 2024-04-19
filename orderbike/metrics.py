@@ -43,7 +43,7 @@ def growth_coverage(
     min_buff=25,
     threshold_change=0.01,
 ):
-    """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptative_coverage and upfunc_growth_adaptative_coverage for adaptative coverage."""
+    """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptive_coverage and upfunc_growth_adaptive_coverage for adaptive coverage."""
     geom_new = geom.copy()
     # If subtractive, since new_area - actual_area <= 0 the max is one changing less the area
     if order == "subtractive":
@@ -88,7 +88,7 @@ def upfunc_growth_coverage(
     }
 
 
-def prefunc_growth_adaptative_coverage(
+def prefunc_growth_adaptive_coverage(
     G_actual, G_final, order, buff_size=400, min_buff=25, threshold_change=0.01
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
@@ -107,7 +107,7 @@ def prefunc_growth_adaptative_coverage(
     }
 
 
-def upfunc_growth_adaptative_coverage(
+def upfunc_growth_adaptive_coverage(
     G,
     G_actual,
     step,
