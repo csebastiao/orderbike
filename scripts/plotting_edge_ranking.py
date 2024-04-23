@@ -1,4 +1,7 @@
-"""Script to plot results from test_growth_toy_graphs."""
+# -*- coding: utf-8 -*-
+"""
+Script to plot the ranking of the edges.
+"""
 
 import pathlib
 import json
@@ -70,8 +73,10 @@ if __name__ == "__main__":
         ax.set_title(f"{str(toy_graph_folder).split("/")[-1]}, ranking of the edges")
         sns.boxplot(pos, ax=ax, order=order)
         ax.set_xlabel("Edge ID")
-        ax.set_ylabel("Ranking in growth strategies")
+        ax.set_ylabel("Ranking in subtractive growth strategies")
         ax.tick_params(axis="x", labelrotation=90)
         plt.tight_layout()
         plt.savefig(plotpath + "/ranking_edges.png", dpi=200)
         plt.close()
+        # TODO Add ranking for additive growth strategies
+        # TODO Add plotting of graph with colored edges based on median ranking

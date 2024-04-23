@@ -221,6 +221,7 @@ def plot_relative_directness(
     return fig, ax
 
 
+# TODO Add buffer as option to show
 def plot_graph(
     G,
     edge_linewidth=2,
@@ -290,6 +291,7 @@ def _show_save_close(fig, show=True, save=False, close=False, filepath=None, dpi
         plt.close()
 
 
+# TODO Add buffer as option to show
 def plot_growth(
     G,
     growth_steps,

@@ -41,7 +41,9 @@ def growth_coverage(
     actual_area=0,
     buff_size=200,
     min_buff=25,
-    threshold_change=0.01,
+    max_buff=400,
+    threshold_min_change=0.1,
+    threshold_max_change=0.9,
 ):
     """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptive_coverage and upfunc_growth_adaptive_coverage for adaptive coverage."""
     geom_new = geom.copy()
@@ -89,9 +91,19 @@ def upfunc_growth_coverage(
 
 
 def prefunc_growth_adaptive_coverage(
-    G_actual, G_final, order, buff_size=400, min_buff=25, threshold_change=0.01
+    G_actual,
+    G_final,
+    order,
+    min_buff=25,
+    max_buff=400,
+    threshold_min_change=0.1,
+    threshold_max_change=0.9,
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
+    if order == "additive":
+        buff_size = max_buff
+    elif order == "subtractive":
+        buff_size = min_buff
     geom = {
         edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
         for edge in G_actual.edges
@@ -103,7 +115,9 @@ def prefunc_growth_adaptive_coverage(
         "actual_area": shapely.ops.unary_union(list(geom.values())).area,
         "buff_size": buff_size,
         "min_buff": min_buff,
-        "threshold_change": threshold_change,
+        "max_buff": max_buff,
+        "threshold_min_change": threshold_min_change,
+        "threshold_max_change": threshold_max_change,
     }
 
 
@@ -112,36 +126,54 @@ def upfunc_growth_adaptive_coverage(
     G_actual,
     step,
     order,
-    buff_size=400,
+    buff_size=200,
+    max_buff=400,
     min_buff=25,
-    threshold_change=0.01,
+    threshold_min_change=0.1,
+    threshold_max_change=0.9,
     geom=None,
     actual_area=0,
     pregraph=None,
 ):
-    """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and reduce the buffer size if too big."""
+    """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and in additive (resp. subtractive) order reduce (resp. increase) the buffer size if too big (resp. small)."""
+    step_area = G.edges[step]["geometry"].buffer(buff_size)
     if order == "subtractive":
         geom.pop(step)
     elif order == "additive":
-        geom[step] = G.edges[step]["geometry"].buffer(buff_size)
+        geom[step] = step_area
     new_area = shapely.ops.unary_union(list(geom.values())).area
-    if buff_size > min_buff:
-        change = (new_area - actual_area) / actual_area
-        if change < threshold_change:
-            buff_size = buff_size / 2
-            if buff_size <= min_buff:
-                buff_size = min_buff
-            geom = {
-                edge: G.edges[edge]["geometry"].buffer(buff_size) for edge in G.edges
-            }
+    if order == "subtractive":
+        if buff_size < max_buff:
+            change = (new_area - actual_area) / step_area
+            if change > threshold_max_change:
+                buff_size = buff_size * 2
+                if buff_size >= max_buff:
+                    buff_size = max_buff
+                geom = {
+                    edge: G.edges[edge]["geometry"].buffer(buff_size)
+                    for edge in G.edges
+                }
+    elif order == "additive":
+        if buff_size > min_buff:
+            change = (new_area - actual_area) / step_area
+            if change < threshold_min_change:
+                buff_size = buff_size / 2
+                if buff_size <= min_buff:
+                    buff_size = min_buff
+                geom = {
+                    edge: G.edges[edge]["geometry"].buffer(buff_size)
+                    for edge in G.edges
+                }
     return {
         "pregraph": G,
         "order": order,
         "geom": geom,
         "actual_area": new_area,
         "buff_size": buff_size,
+        "max_buff": max_buff,
         "min_buff": min_buff,
-        "threshold_change": threshold_change,
+        "threshold_min_change": threshold_min_change,
+        "threshold_max_change": threshold_max_change,
     }
 
 

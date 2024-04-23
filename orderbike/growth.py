@@ -171,10 +171,10 @@ def _metric_dictionaries():
         "precomp_func": metrics.prefunc_growth_coverage,
         "update_func": metrics.upfunc_growth_coverage,
     }
-    metrics_dict["adaptative_coverage"] = {
+    metrics_dict["adaptive_coverage"] = {
         "metric_func": metrics.growth_coverage,
-        "precomp_func": metrics.prefunc_growth_adaptative_coverage,
-        "update_func": metrics.upfunc_growth_adaptative_coverage,
+        "precomp_func": metrics.prefunc_growth_adaptive_coverage,
+        "update_func": metrics.upfunc_growth_adaptive_coverage,
     }
     return metrics_dict
 

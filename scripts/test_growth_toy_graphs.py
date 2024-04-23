@@ -1,4 +1,7 @@
-"""Script to find growth order on 3 urban toy graphs."""
+# -*- coding: utf-8 -*-
+"""
+Script to find growth order on 5 urban toy graphs, with all growth strategies, dynamic and ranked, and random trials.
+"""
 
 import os
 import json
@@ -14,20 +17,24 @@ if __name__ == "__main__":
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
     G_graph = {}
-    G_graph["bridge"] = create_graph.create_bridge_graph(
+    G_graph["single_bridge"] = create_graph.create_bridge_graph(
+        outrows=3, sscols=4, bridges=1, block_side=100, blength=300
+    )
+    G_graph["multiple_bridges"] = create_graph.create_bridge_graph(
         outrows=3, sscols=4, bridges=3, block_side=100, blength=300
     )
     G_graph["grid_wdiagonal"] = create_graph.create_grid_graph(
         rows=10, cols=10, diagonal=True, width=100
     )
     G_graph["grid"] = create_graph.create_grid_graph(
-        rows=10, cols=10, diagonal=True, width=100
+        rows=10, cols=10, diagonal=False, width=100
     )
     G_graph["radio_concentric"] = create_graph.create_concentric_graph(
         radial=8, zones=6, radius=100, straight_edges=True, center=True
     )
+    # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    for name in tqdm.tqdm(G_graph):
+    for name in tqdm.tqdm(["grid"]):
         foldername = "./data/processed/ignored_files/utg/" + name
         if not os.path.exists(foldername):
             os.makedirs(foldername)

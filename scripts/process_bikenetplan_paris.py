@@ -1,4 +1,7 @@
-"""Script to find growth order on Paris bikeplan."""
+# -*- coding: utf-8 -*-
+"""
+Script to find growth order on Paris bikeplan.
+"""
 # STILL NEED TO CHECK IF WORKING WITH MULTIGRAPH
 
 import os

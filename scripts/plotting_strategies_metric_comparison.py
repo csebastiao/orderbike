@@ -1,4 +1,7 @@
-"""Script to plot results from test_growth_toy_graphs."""
+# -*- coding: utf-8 -*-
+"""
+Script to plot multiple strategies of same graph compared on the same metrics, with specific comparison for random trials.
+"""
 
 import pathlib
 import json
@@ -70,7 +73,7 @@ if __name__ == "__main__":
                     for idx, (key, df) in enumerate(sorted(df_graph.items())):
                         # Put different marker based on order
                         if "additive" in key:
-                            markerstyle = "+"
+                            markerstyle = "P"
                         else:
                             markerstyle = "o"
                         sns.lineplot(
@@ -100,7 +103,7 @@ if __name__ == "__main__":
                         ax=ax,
                         color=color_palette[-2],
                         label=f"random_{perc}th percentile_additive",
-                        marker="+",
+                        marker="P",
                     )
                     val_rs = np.sum(
                         [random_sub[i][met].values for i in range(len(random_sub))],
@@ -218,3 +221,4 @@ if __name__ == "__main__":
                 plt.tight_layout()
                 plt.savefig(plotpath + f"/{met}_random_subtractive_trials.png", dpi=200)
                 plt.close()
+                # TODO Add comparison with 6 small figure one next to another with add/subtractive on it instead of 12 on the same one
