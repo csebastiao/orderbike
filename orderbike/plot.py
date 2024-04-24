@@ -17,8 +17,7 @@ from . import metrics
 from .utils import get_node_positions
 
 
-# TODO: Add minimal buffer as plateau so replace buffer smaller than min_buff by min_buff ?
-# TODO: Change buff_size based on relative change, taking into account size of added edge compared to total length of graph ?
+### OUTDATED BELOW, USE METRICS COMPUTED INSTEAD
 def plot_adaptative_coverage(
     G,
     growth_steps,
@@ -222,7 +221,9 @@ def plot_relative_directness(
     return fig, ax
 
 
-# TODO Add buffer as option to show
+### OUTDATED ABOVE, USE METRICS COMPUTED INSTEAD
+
+
 def plot_graph(
     G,
     edge_linewidth=2,
@@ -237,6 +238,10 @@ def plot_graph(
     filepath=None,
     dpi=200,
     bbox=None,
+    buffer=False,
+    buff_size=200,
+    buff_color="steelblue",
+    buff_alpha=0.2,
 ):
     """Plot the graph G with some specified matplotlib parameters, using Geopandas."""
     fig, ax = _init_fig(ax=ax, figsize=figsize)
@@ -265,8 +270,11 @@ def plot_graph(
     gdf_node = gdf_node.assign(color=node_color)
     gdf_edge = gpd.GeoDataFrame(index=[edge for edge in G.edges], geometry=geom_edge)
     gdf_edge = gdf_edge.assign(color=edge_color)
-    gdf_edge.plot(ax=ax, color=gdf_edge["color"], zorder=1, linewidth=edge_linewidth)
-    gdf_node.plot(ax=ax, color=gdf_node["color"], zorder=2, markersize=node_size)
+    gdf_edge.plot(ax=ax, color=gdf_edge["color"], zorder=2, linewidth=edge_linewidth)
+    gdf_node.plot(ax=ax, color=gdf_node["color"], zorder=3, markersize=node_size)
+    if buffer:
+        buff = gpd.GeoSeries(gdf_edge.geometry.buffer(buff_size).unary_union)
+        buff.plot(ax=ax, color=buff_color, alpha=buff_alpha, zorder=0)
     ax.set_xticks([])
     ax.set_yticks([])
     _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
@@ -292,7 +300,7 @@ def _show_save_close(fig, show=True, save=False, close=False, filepath=None, dpi
         plt.close()
 
 
-# TODO Add buffer as option to show
+# TODO Add metric computation side by side
 def plot_growth(
     G,
     growth_steps,
@@ -302,8 +310,17 @@ def plot_growth(
     color_added="blue",
     color_newest="green",
     dpi=200,
+    buffer=False,
+    buff_size=200,
+    buff_alpha=0.2,
+    plot_metrics=False,
+    growth_dir=None,
+    growth_cov=None,
+    growth_reldir=None,
+    growth_xx=None,
     **kwargs,
 ):
+    """Plot the growth of the graph G in the order of the added edges from growth_steps."""
     G_init = _init_graph(G, growth_steps, built=built)
     if built:
         edge_color = {edge: color_built for edge in G_init.edges}
@@ -313,23 +330,61 @@ def plot_growth(
     fig, ax = plot_graph(G, show=False, save=False, close=True, dpi=dpi)
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    bb = [ylim[0], ylim[1], xlim[0], xlim[1]]
-    pad = len(str(len(G.edges)))
+    bb_graph = [ylim[0], ylim[1], xlim[0], xlim[1]]
+    if buffer:
+        bb_graph = [
+            bb_graph[0] - buff_size,
+            bb_graph[1] + buff_size,
+            bb_graph[2] - buff_size,
+            bb_graph[3] + buff_size,
+        ]
+    pad_name = len(str(len(G.edges)))
+    if built:
+        bci = color_added
+    else:
+        bci = color_newest
+    if plot_metrics:
+        fig, axs = plt.subplots(1, 4, figsize=(32, 18))
+        ax = axs[0]
+        for idx, met in enumerate([growth_cov, growth_dir, growth_reldir]):
+            a = axs[idx + 1]
+            a.set_xlim(0, max(growth_xx) * 1.1)
+            pad = (max(met) - min(met)) * 0.1
+            a.set_ylim(min(met) - pad, max(met) + pad)
+            sns.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a)
+    else:
+        fig, ax = _init_fig(ax=None, figsize=(16, 9))
     fig, ax = plot_graph(
         G_init,
+        ax=ax,
         edge_color=edge_color,
-        save=True,
+        save=False,
         show=False,
-        filepath=folder_name + f"/step_{0:0{pad}}.png",
-        bbox=bb,
-        close=True,
+        bbox=bb_graph,
+        close=False,
         dpi=dpi,
+        buffer=buffer,
+        buff_size=buff_size,
+        buff_alpha=buff_alpha,
+        buff_color=bci,
         **kwargs,
+    )
+    if plot_metrics:
+        plt.tight_layout()
+    _show_save_close(
+        fig,
+        show=False,
+        save=True,
+        close=True,
+        filepath=folder_name + f"/step_{0:0{pad_name}}.png",
+        dpi=dpi,
     )
     if not built:
         edge_color = {edge: color_added for edge in G_init.edges}
     actual_edges = list(G_init.edges)
     old_edge = None
+    if buffer:
+        geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in G_init.edges]
     for ids, edge in enumerate(growth_steps):
         actual_edges.append(edge)
         edge_color[edge] = color_newest
@@ -337,27 +392,87 @@ def plot_growth(
         if old_edge is not None:
             edge_color[old_edge] = color_added
         G_actual = G.edge_subgraph(actual_edges)
-        fig, ax = plot_graph(
-            G_actual,
-            edge_color=edge_color,
-            save=True,
+        if plot_metrics:
+            fig, axs = plt.subplots(1, 4, figsize=(32, 18))
+            ax = axs[0]
+        else:
+            fig, ax = _init_fig(ax=None, figsize=(16, 9))
+        if buffer:
+            fig, ax = plot_graph(
+                G_actual,
+                ax=ax,
+                edge_color=edge_color,
+                buffer=buffer,
+                buff_size=buff_size,
+                buff_alpha=buff_alpha,
+                save=False,
+                show=False,
+                bbox=bb_graph,
+                close=False,
+                dpi=dpi,
+                **kwargs,
+            )
+            buff_bef = gpd.GeoSeries(geom).unary_union
+            geom.append(G.edges[edge]["geometry"].buffer(buff_size))
+            buff_aft = gpd.GeoSeries(geom).unary_union
+            diff = shapely.difference(buff_aft, buff_bef)
+            if diff.area > 0:
+                buff_added = gpd.GeoSeries(diff)
+                buff_added.plot(ax=ax, color=color_newest, alpha=buff_alpha, zorder=1)
+        else:
+            fig, ax = plot_graph(
+                G_actual,
+                ax=ax,
+                edge_color=edge_color,
+                save=False,
+                show=False,
+                bbox=bb_graph,
+                close=False,
+                dpi=dpi,
+                **kwargs,
+            )
+        if plot_metrics:
+            for idx, met in enumerate([growth_cov, growth_dir, growth_reldir]):
+                a = axs[idx + 1]
+                a.set_xlim(0, max(growth_xx) * 1.1)
+                pad = (max(met) - min(met)) * 0.1
+                a.set_ylim(min(met) - pad, max(met) + pad)
+                sns.lineplot(x=growth_xx[: ids + 2], y=met[: ids + 2], ax=a)
+            plt.tight_layout()
+        _show_save_close(
+            fig,
             show=False,
-            filepath=folder_name + f"/step_{ids+1:0{pad}}.png",
-            bbox=bb,
+            save=True,
             close=True,
+            filepath=folder_name + f"/step_{ids+1:0{pad_name}}.png",
             dpi=dpi,
-            **kwargs,
         )
         old_edge = edge
 
 
 def plot_order_growth(
-    G, growth_steps, cmap=sns.color_palette("crest", as_cmap=True), **kwargs
+    G,
+    growth_steps,
+    cmap=sns.color_palette("crest", as_cmap=True),
+    figsize=(16, 9),
+    show=True,
+    save=False,
+    close=False,
+    filepath=None,
+    **kwargs,
 ):
     """Plot with a sequential colormap the order of the edges built on the graph"""
+    fig, ax = plt.subplots(figsize=figsize)
     norm = len(growth_steps)
-    ec = {step: cmap(idx / norm) for idx, step in enumerate(growth_steps)}
-    fig, ax = plot_graph(G, edge_color=ec, **kwargs)
+    ec = {step: cmap((idx + 1) / norm) for idx, step in enumerate(growth_steps)}
+    edge_init = [edge for edge in G.edges if edge not in growth_steps]
+    for e in edge_init:
+        ec[e] = cmap(0)
+    fig, ax = plot_graph(
+        G, ax=ax, edge_color=ec, show=False, save=False, close=False, **kwargs
+    )
+    # TODO Add colormap
+    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath)
     return fig, ax
 
 

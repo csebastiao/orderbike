@@ -136,15 +136,15 @@ def upfunc_growth_adaptive_coverage(
     pregraph=None,
 ):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization, and in additive (resp. subtractive) order reduce (resp. increase) the buffer size if too big (resp. small)."""
-    step_area = G.edges[step]["geometry"].buffer(buff_size)
+    step_geom = G.edges[step]["geometry"].buffer(buff_size)
     if order == "subtractive":
         geom.pop(step)
     elif order == "additive":
-        geom[step] = step_area
+        geom[step] = step_geom
     new_area = shapely.ops.unary_union(list(geom.values())).area
     if order == "subtractive":
         if buff_size < max_buff:
-            change = (new_area - actual_area) / step_area
+            change = (new_area - actual_area) / step_geom.area
             if change > threshold_max_change:
                 buff_size = buff_size * 2
                 if buff_size >= max_buff:
@@ -155,7 +155,7 @@ def upfunc_growth_adaptive_coverage(
                 }
     elif order == "additive":
         if buff_size > min_buff:
-            change = (new_area - actual_area) / step_area
+            change = (new_area - actual_area) / step_geom.area
             if change < threshold_min_change:
                 buff_size = buff_size / 2
                 if buff_size <= min_buff:

@@ -34,7 +34,7 @@ if __name__ == "__main__":
     )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    for name in tqdm.tqdm(["grid"]):
+    for name in tqdm.tqdm(G_graph):
         foldername = "./data/processed/ignored_files/utg/" + name
         if not os.path.exists(foldername):
             os.makedirs(foldername)
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                 if METRICNAME == "coverage":
                     kwargs = {"buff_size": BUFF_SIZE}
                 elif METRICNAME == "adaptive_coverage":
-                    kwargs = {"buff_size": BUFF_SIZE * 2, "min_buff": BUFF_SIZE / 2}
+                    kwargs = {"max_buff": BUFF_SIZE * 2, "min_buff": BUFF_SIZE / 2}
                 else:
                     kwargs = {}
                 metrics_dict, order_growth = growth.order_dynamic_network_growth(
@@ -101,18 +101,13 @@ if __name__ == "__main__":
                 md["buff_size"] = BUFF_SIZE
                 with open(foldername + "/metadata.json", "w") as f:
                     json.dump(md, f)
-                fig, ax = plot.plot_order_growth(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/order_growth.png",
-                )
+                foldergrowth = foldername + "/growth"
+                if not os.path.exists(foldergrowth):
+                    os.makedirs(foldergrowth)
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
-                    foldername,
+                    foldergrowth,
                     built=BUILT,
                     color_built="firebrick",
                     color_added="steelblue",
@@ -120,7 +115,37 @@ if __name__ == "__main__":
                     node_size=8,
                 )
                 plot.make_growth_video(
-                    foldername, foldername + "/growth_video.mp4", fps=3
+                    foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
+                )
+                foldergrowth_buff = foldername + "/growth_buffer"
+                if not os.path.exists(foldergrowth_buff):
+                    os.makedirs(foldergrowth_buff)
+                plot.plot_growth(
+                    G_graph[name],
+                    order_growth,
+                    foldergrowth_buff,
+                    built=BUILT,
+                    color_built="firebrick",
+                    color_added="steelblue",
+                    color_newest="darkgreen",
+                    node_size=8,
+                    buffer=True,
+                    plot_metrics=True,
+                    growth_cov=metrics_dict["coverage"],
+                    growth_xx=metrics_dict["xx"],
+                    growth_dir=metrics_dict["directness"],
+                    growth_reldir=metrics_dict["relative_directness"],
+                )
+                plot.make_growth_video(
+                    foldergrowth_buff, foldergrowth_buff + "/growth_video.mp4", fps=3
+                )
+                fig, ax = plot.plot_order_growth(
+                    G_graph[name],
+                    order_growth,
+                    show=False,
+                    save=True,
+                    close=True,
+                    filepath=foldername + "/order_growth.png",
                 )
                 fig, ax = plot.plot_coverage(
                     G_graph[name],
@@ -188,18 +213,13 @@ if __name__ == "__main__":
                 md["buff_size"] = BUFF_SIZE
                 with open(foldername + "/metadata.json", "w") as f:
                     json.dump(md, f)
-                fig, ax = plot.plot_order_growth(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/order_growth.png",
-                )
+                foldergrowth = foldername + "/growth"
+                if not os.path.exists(foldergrowth):
+                    os.makedirs(foldergrowth)
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
-                    foldername,
+                    foldergrowth,
                     built=BUILT,
                     color_built="firebrick",
                     color_added="steelblue",
@@ -207,7 +227,37 @@ if __name__ == "__main__":
                     node_size=8,
                 )
                 plot.make_growth_video(
-                    foldername, foldername + "/growth_video.mp4", fps=3
+                    foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
+                )
+                foldergrowth_buff = foldername + "/growth_buffer"
+                if not os.path.exists(foldergrowth_buff):
+                    os.makedirs(foldergrowth_buff)
+                plot.plot_growth(
+                    G_graph[name],
+                    order_growth,
+                    foldergrowth_buff,
+                    built=BUILT,
+                    color_built="firebrick",
+                    color_added="steelblue",
+                    color_newest="darkgreen",
+                    node_size=8,
+                    buffer=True,
+                    plot_metrics=True,
+                    growth_cov=metrics_dict["coverage"],
+                    growth_xx=metrics_dict["xx"],
+                    growth_dir=metrics_dict["directness"],
+                    growth_reldir=metrics_dict["relative_directness"],
+                )
+                plot.make_growth_video(
+                    foldergrowth_buff, foldergrowth_buff + "/growth_video.mp4", fps=3
+                )
+                fig, ax = plot.plot_order_growth(
+                    G_graph[name],
+                    order_growth,
+                    show=False,
+                    save=True,
+                    close=True,
+                    filepath=foldername + "/order_growth.png",
                 )
                 fig, ax = plot.plot_coverage(
                     G_graph[name],
@@ -238,42 +288,42 @@ if __name__ == "__main__":
                     filepath=foldername + "/relative_directness.png",
                     x_meter=True,
                 )
-            foldername = (
-                "./data/processed/ignored_files/utg/"
-                + name
-                + "/"
-                + "random_trials"
-                + "_"
-                + ORDERNAME
-            )
-            if CONNECTED:
-                foldername += "_connected"
-            if BUILT:
-                foldername += "_built"
-            if not os.path.exists(foldername):
-                os.makedirs(foldername)
-            NUM_TRIALS = 1000
-            md = {}
-            md["growth"] = "ranked"
-            md["built"] = BUILT
-            md["keep_connected"] = CONNECTED
-            md["metric"] = "random"
-            md["order"] = ORDERNAME
-            md["buff_size"] = BUFF_SIZE
-            md["trials"] = NUM_TRIALS
-            with open(foldername + "/metadata.json", "w") as f:
-                json.dump(md, f)
-            for i in range(NUM_TRIALS):
-                metrics_dict, order_growth = growth.order_ranked_network_growth(
-                    G_graph[name],
-                    built=BUILT,
-                    keep_connected=CONNECTED,
-                    order=ORDERNAME,
-                    ranking_func=metrics.growth_random,
-                    save_metrics=True,
-                    buff_size_metrics=BUFF_SIZE,
-                )
-                with open(foldername + f"/order_growth_{i:03}.json", "w") as f:
-                    json.dump(order_growth, f)
-                with open(foldername + f"/metrics_growth_{i:03}.json", "w") as f:
-                    json.dump(metrics_dict, f)
+            # foldername = (
+            #     "./data/processed/ignored_files/utg/"
+            #     + name
+            #     + "/"
+            #     + "random_trials"
+            #     + "_"
+            #     + ORDERNAME
+            # )
+            # if CONNECTED:
+            #     foldername += "_connected"
+            # if BUILT:
+            #     foldername += "_built"
+            # if not os.path.exists(foldername):
+            #     os.makedirs(foldername)
+            # NUM_TRIALS = 1000
+            # md = {}
+            # md["growth"] = "ranked"
+            # md["built"] = BUILT
+            # md["keep_connected"] = CONNECTED
+            # md["metric"] = "random"
+            # md["order"] = ORDERNAME
+            # md["buff_size"] = BUFF_SIZE
+            # md["trials"] = NUM_TRIALS
+            # with open(foldername + "/metadata.json", "w") as f:
+            #     json.dump(md, f)
+            # for i in range(NUM_TRIALS):
+            #     metrics_dict, order_growth = growth.order_ranked_network_growth(
+            #         G_graph[name],
+            #         built=BUILT,
+            #         keep_connected=CONNECTED,
+            #         order=ORDERNAME,
+            #         ranking_func=metrics.growth_random,
+            #         save_metrics=True,
+            #         buff_size_metrics=BUFF_SIZE,
+            #     )
+            #     with open(foldername + f"/order_growth_{i:03}.json", "w") as f:
+            #         json.dump(order_growth, f)
+            #     with open(foldername + f"/metrics_growth_{i:03}.json", "w") as f:
+            #         json.dump(metrics_dict, f)
