@@ -7,6 +7,7 @@ import pathlib
 import json
 import pandas as pd
 import seaborn as sns
+import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
 from utg import utils as utgut
@@ -55,6 +56,8 @@ if __name__ == "__main__":
         plotpath = str(toy_graph_folder) + "/plots"
         pathlib.Path(plotpath).mkdir(parents=True, exist_ok=True)
         pos = {}
+        # Do ranking for subtractive orders
+        # Different than additive as with additive always start with the same one
         for val in G.edges:
             pos[str(val)] = np.array([])
         for arr in arr_sub_graph:
@@ -69,14 +72,45 @@ if __name__ == "__main__":
         df = pd.DataFrame.from_dict(pos)
         order = df.median().sort_values().index
         # Start plotting order
-        fig, ax = plt.subplots(figsize=(16, 9))
-        ax.set_title(f"{str(toy_graph_folder).split("/")[-1]}, ranking of the edges")
+        # Large figsize for police
+        fig, ax = plt.subplots(figsize=(32, 18))
+        ax.set_title(
+            f"{str(toy_graph_folder).split("/")[-1]}, ranking of the edges, subtractive order"
+        )
         sns.boxplot(pos, ax=ax, order=order)
         ax.set_xlabel("Edge ID")
-        ax.set_ylabel("Ranking in subtractive growth strategies")
+        ax.set_ylabel("Ranking")
         ax.tick_params(axis="x", labelrotation=90)
         plt.tight_layout()
-        plt.savefig(plotpath + "/ranking_edges.png", dpi=200)
+        plt.savefig(plotpath + "/ranking_edges_sub.png", dpi=200)
         plt.close()
-        # TODO Add ranking for additive growth strategies
-        # TODO Add plotting of graph with colored edges based on median ranking
+        # Do ranking for additive orders
+        pos = {}
+        for arr in arr_add_graph:
+            for idx, val in enumerate(arr):
+                val = str(val)
+                if val in pos:
+                    pos[val] = np.append(pos[val], [idx])
+                else:
+                    pos[val] = np.array([idx])
+        # Find init edge with highest closeness
+        # Could also find the one not in the dict
+        closeness = nx.closeness_centrality(G, distance="length")
+        edge_closeness = {}
+        for edge in G.edges:
+            edge_closeness[edge] = (closeness[edge[0]] + closeness[edge[1]]) / 2
+        e_init = tuple(max(edge_closeness, key=edge_closeness.get))
+        df = pd.DataFrame.from_dict(pos)
+        order = df.median().sort_values().index
+        # Start plotting order
+        fig, ax = plt.subplots(figsize=(32, 18))
+        ax.set_title(
+            f"{str(toy_graph_folder).split("/")[-1]}, ranking of the edges, additive order, initialized with {e_init}"
+        )
+        sns.boxplot(pos, ax=ax, order=order)
+        ax.set_xlabel("Edge ID")
+        ax.set_ylabel("Ranking")
+        ax.tick_params(axis="x", labelrotation=90)
+        plt.tight_layout()
+        plt.savefig(plotpath + "/ranking_edges_add.png", dpi=200)
+        plt.close()

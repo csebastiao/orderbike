@@ -101,6 +101,14 @@ if __name__ == "__main__":
                 md["buff_size"] = BUFF_SIZE
                 with open(foldername + "/metadata.json", "w") as f:
                     json.dump(md, f)
+                fig, ax = plot.plot_order_growth(
+                    G_graph[name],
+                    order_growth,
+                    show=False,
+                    save=True,
+                    close=True,
+                    filepath=foldername + "/order_growth.png",
+                )
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -180,6 +188,14 @@ if __name__ == "__main__":
                 md["buff_size"] = BUFF_SIZE
                 with open(foldername + "/metadata.json", "w") as f:
                     json.dump(md, f)
+                fig, ax = plot.plot_order_growth(
+                    G_graph[name],
+                    order_growth,
+                    show=False,
+                    save=True,
+                    close=True,
+                    filepath=foldername + "/order_growth.png",
+                )
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,

@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import numpy as np
 import shapely
+import seaborn as sns
 
 from . import metrics
 from .utils import get_node_positions
@@ -348,6 +349,16 @@ def plot_growth(
             **kwargs,
         )
         old_edge = edge
+
+
+def plot_order_growth(
+    G, growth_steps, cmap=sns.color_palette("crest", as_cmap=True), **kwargs
+):
+    """Plot with a sequential colormap the order of the edges built on the graph"""
+    norm = len(growth_steps)
+    ec = {step: cmap(idx / norm) for idx, step in enumerate(growth_steps)}
+    fig, ax = plot_graph(G, edge_color=ec, **kwargs)
+    return fig, ax
 
 
 def _init_graph(G, growth_steps, built=True):
