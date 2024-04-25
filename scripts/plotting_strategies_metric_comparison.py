@@ -64,6 +64,47 @@ if __name__ == "__main__":
             if met in ["xx", "length_lcc", "num_cc"]:
                 pass
             else:
+                fig, axs = plt.subplots(
+                    2, 3, figsize=(32, 18), sharex=True, sharey=True
+                )
+                fig.suptitle(f"{str(toy_graph_folder).split("/")[-1]}, {met}")
+                ax_met = {
+                    "coverage": axs[0, 0],
+                    "directness": axs[0, 1],
+                    "betweenness": axs[0, 2],
+                    "adaptive_coverage": axs[1, 0],
+                    "relative_directness": axs[1, 1],
+                    "closeness": axs[1, 2],
+                }
+                for metname, ax in ax_met.items():
+                    ax.set_title(metname)
+                # Add all growth strategies for a single metric
+                for key, df in sorted(df_graph.items()):
+                    # Put different marker based on order
+                    if "additive" in key:
+                        markerstyle = "P"
+                        colorstyle = color_palette[4]
+                        labelname = "additive"
+                    else:
+                        markerstyle = "o"
+                        colorstyle = color_palette[6]
+                        labelname = "subtractive"
+                    met_name = "_".join(key.split("_")[:-1])
+                    sns.lineplot(
+                        data=df,
+                        x="xx",
+                        y=met,
+                        ax=ax_met[met_name],
+                        color=colorstyle,
+                        label=labelname,
+                        marker=markerstyle,
+                    )
+                axs[1][0].set_xlabel("Meters built")
+                axs[1][1].set_xlabel("Meters built")
+                axs[1][2].set_xlabel("Meters built")
+                plt.tight_layout()
+                plt.savefig(plotpath + f"/{met}_subplots.png", dpi=200)
+                plt.close()
                 # Plot for different values of random
                 PERC_VALS = [0, 50, 100]
                 for perc in PERC_VALS:
@@ -221,4 +262,3 @@ if __name__ == "__main__":
                 plt.tight_layout()
                 plt.savefig(plotpath + f"/{met}_random_subtractive_trials.png", dpi=200)
                 plt.close()
-                # TODO Add comparison with 6 small figure one next to another with add/subtractive on it instead of 12 on the same one

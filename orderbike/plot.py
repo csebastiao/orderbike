@@ -351,7 +351,7 @@ def plot_growth(
             a.set_xlim(0, max(growth_xx) * 1.1)
             pad = (max(met) - min(met)) * 0.1
             a.set_ylim(min(met) - pad, max(met) + pad)
-            sns.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a)
+            sns.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a, marker="o")
     else:
         fig, ax = _init_fig(ax=None, figsize=(16, 9))
     fig, ax = plot_graph(
@@ -437,7 +437,7 @@ def plot_growth(
                 a.set_xlim(0, max(growth_xx) * 1.1)
                 pad = (max(met) - min(met)) * 0.1
                 a.set_ylim(min(met) - pad, max(met) + pad)
-                sns.lineplot(x=growth_xx[: ids + 2], y=met[: ids + 2], ax=a)
+                sns.lineplot(x=growth_xx[: ids + 2], y=met[: ids + 2], ax=a, marker="o")
             plt.tight_layout()
         _show_save_close(
             fig,

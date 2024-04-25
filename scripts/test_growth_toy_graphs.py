@@ -147,6 +147,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_coverage(
                     G_graph[name],
                     order_growth,
@@ -156,6 +157,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/coverage.png",
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_directness(
                     G_graph[name],
                     order_growth,
@@ -166,6 +168,7 @@ if __name__ == "__main__":
                     filepath=foldername + "/directness.png",
                     x_meter=True,
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_relative_directness(
                     G_graph[name],
                     order_growth,
@@ -259,6 +262,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_coverage(
                     G_graph[name],
                     order_growth,
@@ -268,6 +272,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/coverage.png",
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_directness(
                     G_graph[name],
                     order_growth,
@@ -278,6 +283,7 @@ if __name__ == "__main__":
                     filepath=foldername + "/directness.png",
                     x_meter=True,
                 )
+                # TODO Remove it and put with saved values instead
                 fig, ax = plot.plot_relative_directness(
                     G_graph[name],
                     order_growth,
