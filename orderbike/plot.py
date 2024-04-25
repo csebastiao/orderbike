@@ -9,15 +9,12 @@ import cv2
 import geopandas as gpd
 from matplotlib import pyplot as plt
 import networkx as nx
-import numpy as np
 import shapely
 import seaborn as sns
 
-from . import metrics
 from .utils import get_node_positions
 
 
-### OUTDATED BELOW, USE METRICS COMPUTED INSTEAD
 def plot_adaptative_coverage(
     G,
     growth_steps,
@@ -122,106 +119,6 @@ def _set_x(ax, G_init, G_final, steps, x_meter=True):
         xx = range(len(steps))
         ax.set_xlabel("Steps built")
     return xx
-
-
-def plot_coverage(
-    G,
-    growth_steps,
-    buff_size=200,
-    ax=None,
-    built=True,
-    x_meter=True,
-    show=True,
-    save=False,
-    close=False,
-    filepath=None,
-    dpi=1000,
-    figsize=(16, 9),
-    **kwargs,
-):
-    """Plot the coverage through the growth of the graph for a fixed buffer."""
-    fig, ax = _init_fig(ax=ax, figsize=figsize)
-    G_actual = _init_graph(G, growth_steps, built=built)
-    yy = []
-    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
-    geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
-    for edge in growth_steps:
-        geom.append(G.edges[edge]["geometry"].buffer(buff_size))
-        yy.append(shapely.ops.unary_union(geom).area)
-    ax.set_ylabel(f"Total coverage ($m^2$) for buffer of {buff_size}m")
-    ax.scatter(xx, yy, **kwargs)
-    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
-    return fig, ax
-
-
-def plot_directness(
-    G,
-    growth_steps,
-    ax=None,
-    built=True,
-    x_meter=True,
-    show=True,
-    save=False,
-    close=False,
-    filepath=None,
-    dpi=1000,
-    figsize=(16, 9),
-    **kwargs,
-):
-    fig, ax = _init_fig(ax=ax, figsize=figsize)
-    G_actual = _init_graph(G, growth_steps, built=built)
-    actual_edges = [edge for edge in G_actual.edges]
-    yy = []
-    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
-    for edge in growth_steps:
-        actual_edges.append(tuple(edge))
-        G_actual = G.edge_subgraph(actual_edges)
-        yy.append(metrics.directness(G_actual, edge))
-    ax.set_ylabel("Directness")
-    ax.scatter(xx, yy, **kwargs)
-    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
-    return fig, ax
-
-
-def plot_relative_directness(
-    G,
-    growth_steps,
-    ax=None,
-    built=True,
-    x_meter=True,
-    show=True,
-    save=False,
-    close=False,
-    filepath=None,
-    dpi=1000,
-    figsize=(16, 9),
-    **kwargs,
-):
-    fig, ax = _init_fig(ax=ax, figsize=figsize)
-    G_actual = _init_graph(G, growth_steps, built=built)
-    actual_edges = [edge for edge in G_actual.edges]
-    yy = []
-    xx = _set_x(ax, G_actual, G, growth_steps, x_meter=x_meter)
-    sm_final = metrics.get_shortest_network_path_length_matrix(G)
-    for edge in growth_steps:
-        actual_edges.append(tuple(edge))
-        G_actual = G.edge_subgraph(actual_edges)
-        sm_actual = metrics.get_shortest_network_path_length_matrix(G_actual)
-        ids_to_delete = [
-            ids for ids, node in enumerate(G.nodes) if node not in G_actual
-        ]
-        sm_final_trimmed = np.delete(
-            np.delete(sm_final, ids_to_delete, 0), ids_to_delete, 1
-        )
-        mat = metrics._avoid_zerodiv_matrix(sm_final_trimmed, sm_actual)
-        yy.append(np.sum(mat) / np.count_nonzero(mat))
-    ax.set_ylabel("Relative directness")
-    ax.scatter(xx, yy, **kwargs)
-    _show_save_close(fig, show=show, save=save, close=close, filepath=filepath, dpi=dpi)
-    return fig, ax
-
-
-### OUTDATED ABOVE, USE METRICS COMPUTED INSTEAD
 
 
 def plot_graph(

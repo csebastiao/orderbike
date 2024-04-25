@@ -114,6 +114,7 @@ if __name__ == "__main__":
         df_growth.to_json(str(toy_graph_folder) + "/auc_table_growth.json")
         df_random.to_json(str(toy_graph_folder) + "/auc_table_random.json")
         fig, ax = plt.subplots(figsize=(16, 9))
+        ax.set_title("Growth strategies, AUC comparison")
         sns.scatterplot(
             df_growth,
             x="AUC of Directness",
@@ -127,9 +128,25 @@ if __name__ == "__main__":
         plt.savefig(
             str(toy_graph_folder) + "/plots/AUC_comparison_cov_dir.png", dpi=200
         )
+        plt.close()
+        # TODO Fix random scatterplot
+        fig, ax = plt.subplots(figsize=(16, 9))
+        ax.set_title("Random growths, AUC comparison")
+        sns.scatterplot(
+            df_random,
+            x="AUC of Directness",
+            y="AUC of Coverage",
+            hue="Order",
+            ax=ax,
+            alpha=0.2,
+        )
         plt.tight_layout()
+        plt.savefig(
+            str(toy_graph_folder) + "/plots/AUC_comparison_cov_dir_random.png", dpi=200
+        )
         plt.close()
         fig, ax = plt.subplots(figsize=(16, 9))
+        ax.set_title("Growth strategies, AUC comparison")
         sns.scatterplot(
             df_growth,
             x="AUC of Directness",
@@ -144,4 +161,20 @@ if __name__ == "__main__":
             str(toy_graph_folder) + "/plots/AUC_comparison_reldir_dir.png", dpi=200
         )
         plt.close()
-        # Plot all random aucs with light alpha and highlited 0, 50, and 100 percentiles in additive and subtractive order, with hue being the order, style being the highlight or not
+        # TODO Fix random scatterplot
+        fig, ax = plt.subplots(figsize=(16, 9))
+        ax.set_title("Random growths, AUC comparison")
+        sns.scatterplot(
+            df_random,
+            x="AUC of Directness",
+            y="AUC of Relative Directness",
+            hue="Order",
+            ax=ax,
+            alpha=0.2,
+        )
+        plt.tight_layout()
+        plt.savefig(
+            str(toy_graph_folder) + "/plots/AUC_comparison_reldir_dir_random.png",
+            dpi=200,
+        )
+        plt.close()
