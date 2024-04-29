@@ -89,7 +89,7 @@ if __name__ == "__main__":
             random_sub_aucs.append(
                 ["random", "subtractive", auc_cov, auc_dir, auc_reldir]
             )
-        random_aucs = np.concatenate([random_add_aucs, random_sub_aucs])
+        random_aucs = random_add_aucs + random_sub_aucs
         # Save everything as JSON with Pandas Dataframe
         df_growth = pd.DataFrame(
             toy_graph_aucs,
