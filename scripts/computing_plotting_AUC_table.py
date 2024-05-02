@@ -52,7 +52,7 @@ if __name__ == "__main__":
         ]:
             # For random trials, open all trials
             if "random_trials" in str(growth_f):
-                for random_trial in list(pathlib.Path(growth_f).iterdir()):
+                for random_trial in sorted(list(pathlib.Path(growth_f).iterdir())):
                     # Open only the metrics growth not the order growth
                     if "metrics" in str(random_trial):
                         with open(random_trial, "r") as f:
@@ -70,22 +70,36 @@ if __name__ == "__main__":
                 elif "subtractive" in growthname:
                     order = "subtractive"
                 met_name = "_".join(growthname.split("_")[:-1])
-                auc_cov = auc_from_metrics_dict(met_dict, "coverage")
-                auc_dir = auc_from_metrics_dict(met_dict, "directness")
-                auc_reldir = auc_from_metrics_dict(met_dict, "relative_directness")
+                auc_cov = auc_from_metrics_dict(
+                    met_dict, "coverage", normalize_y=True, zero_yaxis=False
+                )
+                auc_dir = auc_from_metrics_dict(
+                    met_dict, "directness", normalize_y=False
+                )
+                auc_reldir = auc_from_metrics_dict(
+                    met_dict, "relative_directness", normalize_y=False
+                )
                 # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
                 toy_graph_aucs.append([met_name, order, auc_cov, auc_dir, auc_reldir])
         random_add_aucs = []
         for met_dict in random_add:
-            auc_cov = auc_from_metrics_dict(met_dict, "coverage")
-            auc_dir = auc_from_metrics_dict(met_dict, "directness")
-            auc_reldir = auc_from_metrics_dict(met_dict, "relative_directness")
+            auc_cov = auc_from_metrics_dict(
+                met_dict, "coverage", normalize_y=True, zero_yaxis=False
+            )
+            auc_dir = auc_from_metrics_dict(met_dict, "directness", normalize_y=False)
+            auc_reldir = auc_from_metrics_dict(
+                met_dict, "relative_directness", normalize_y=False
+            )
             random_add_aucs.append(["random", "additive", auc_cov, auc_dir, auc_reldir])
         random_sub_aucs = []
         for met_dict in random_sub:
-            auc_cov = auc_from_metrics_dict(met_dict, "coverage")
-            auc_dir = auc_from_metrics_dict(met_dict, "directness")
-            auc_reldir = auc_from_metrics_dict(met_dict, "relative_directness")
+            auc_cov = auc_from_metrics_dict(
+                met_dict, "coverage", normalize_y=True, zero_yaxis=False
+            )
+            auc_dir = auc_from_metrics_dict(met_dict, "directness", normalize_y=False)
+            auc_reldir = auc_from_metrics_dict(
+                met_dict, "relative_directness", normalize_y=False
+            )
             random_sub_aucs.append(
                 ["random", "subtractive", auc_cov, auc_dir, auc_reldir]
             )
@@ -129,7 +143,32 @@ if __name__ == "__main__":
             str(toy_graph_folder) + "/plots/AUC_comparison_cov_dir.png", dpi=200
         )
         plt.close()
-        # TODO Fix random scatterplot
+        fig, ax = plt.subplots(figsize=(16, 9))
+        sns.scatterplot(
+            df_random,
+            x="AUC of Directness",
+            y="AUC of Coverage",
+            hue="Order",
+            ax=ax,
+            alpha=0.2,
+            palette=sns.color_palette("pastel")[:2],
+        )
+        ax.set_title("All strategies, AUC comparison")
+        sns.scatterplot(
+            df_growth,
+            x="AUC of Directness",
+            y="AUC of Coverage",
+            style="Order",
+            hue="Metric optimized",
+            ax=ax,
+            s=100,
+            palette=sns.color_palette("deep")[2:-2],
+        )
+        plt.tight_layout()
+        plt.savefig(
+            str(toy_graph_folder) + "/plots/AUC_comparison_cov_dir_all.png", dpi=200
+        )
+        plt.close()
         fig, ax = plt.subplots(figsize=(16, 9))
         ax.set_title("Random growths, AUC comparison")
         sns.scatterplot(
@@ -161,7 +200,6 @@ if __name__ == "__main__":
             str(toy_graph_folder) + "/plots/AUC_comparison_reldir_dir.png", dpi=200
         )
         plt.close()
-        # TODO Fix random scatterplot
         fig, ax = plt.subplots(figsize=(16, 9))
         ax.set_title("Random growths, AUC comparison")
         sns.scatterplot(
@@ -175,6 +213,33 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.savefig(
             str(toy_graph_folder) + "/plots/AUC_comparison_reldir_dir_random.png",
+            dpi=200,
+        )
+        plt.close()
+        fig, ax = plt.subplots(figsize=(16, 9))
+        ax.set_title("All strategies, AUC comparison")
+        sns.scatterplot(
+            df_growth,
+            x="AUC of Directness",
+            y="AUC of Relative Directness",
+            style="Order",
+            hue="Metric optimized",
+            ax=ax,
+            s=100,
+            palette=sns.color_palette("deep")[2:-2],
+        )
+        sns.scatterplot(
+            df_random,
+            x="AUC of Directness",
+            y="AUC of Relative Directness",
+            hue="Order",
+            ax=ax,
+            alpha=0.2,
+            palette=sns.color_palette("pastel")[:2],
+        )
+        plt.tight_layout()
+        plt.savefig(
+            str(toy_graph_folder) + "/plots/AUC_comparison_reldir_dir_all.png",
             dpi=200,
         )
         plt.close()
