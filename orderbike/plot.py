@@ -14,8 +14,6 @@ import seaborn as sns
 
 from .utils import get_node_positions
 
-# TODO Make plotting using seaborn and metric dict
-
 
 def plot_adaptative_coverage(
     G,

@@ -6,11 +6,27 @@ Script to find growth order on 5 urban toy graphs, with all growth strategies, d
 import os
 import json
 import tqdm
+import logging
+
+from matplotlib import pyplot as plt
+import seaborn as sns
+
 from utg import create_graph
 from utg import utils as utgut
 from orderbike import growth, plot, metrics
 
 if __name__ == "__main__":
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler("growth.log")
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
+    )
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
     BUILT = False
     CONNECTED = True
     ranking_func = {}
@@ -34,7 +50,7 @@ if __name__ == "__main__":
     )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    for name in tqdm.tqdm(G_graph):
+    for name in tqdm.tqdm(["grid"]):
         foldername = "./data/processed/ignored_files/utg/" + name
         if not os.path.exists(foldername):
             os.makedirs(foldername)
@@ -53,6 +69,9 @@ if __name__ == "__main__":
                 "directness",
                 "relative_directness",
             ]:
+                logger.info(
+                    f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
+                )
                 if METRICNAME == "coverage":
                     kwargs = {"buff_size": BUFF_SIZE}
                 elif METRICNAME == "adaptive_coverage":
@@ -104,6 +123,7 @@ if __name__ == "__main__":
                 foldergrowth = foldername + "/growth"
                 if not os.path.exists(foldergrowth):
                     os.makedirs(foldergrowth)
+                logger.info("Plot growth")
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -117,6 +137,7 @@ if __name__ == "__main__":
                 plot.make_growth_video(
                     foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
                 )
+                logger.info("Plot growth with buffer and metrics")
                 foldergrowth_buff = foldername + "/growth_buffer"
                 if not os.path.exists(foldergrowth_buff):
                     os.makedirs(foldergrowth_buff)
@@ -147,39 +168,23 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_coverage(
-                    G_graph[name],
-                    order_growth,
-                    built=BUILT,
-                    show=False,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/coverage.png",
-                )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_directness(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    built=BUILT,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/directness.png",
-                    x_meter=True,
-                )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_relative_directness(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    built=BUILT,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/relative_directness.png",
-                    x_meter=True,
-                )
+                logger.info("Plot metrics")
+                for met in metrics_dict:
+                    if met == "xx":
+                        pass
+                    else:
+                        fig, ax = plt.subplots(figsize=(16, 9))
+                        sns.lineplot(
+                            x=metrics_dict["xx"], y=metrics_dict[met], ax=ax, marker="o"
+                        )
+                        ax.set_xlabel("Meters built")
+                        plt.tight_layout()
+                        fig.savefig(foldername + f"/{met}.png", dpi=100)
+                        plt.close()
             for METRICNAME in ranking_func:
+                logger.info(
+                    f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
+                )
                 metrics_dict, order_growth = growth.order_ranked_network_growth(
                     G_graph[name],
                     built=BUILT,
@@ -219,6 +224,7 @@ if __name__ == "__main__":
                 foldergrowth = foldername + "/growth"
                 if not os.path.exists(foldergrowth):
                     os.makedirs(foldergrowth)
+                logger.info("Plot growth")
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -232,6 +238,7 @@ if __name__ == "__main__":
                 plot.make_growth_video(
                     foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
                 )
+                logger.info("Plot growth with buffer and metrics")
                 foldergrowth_buff = foldername + "/growth_buffer"
                 if not os.path.exists(foldergrowth_buff):
                     os.makedirs(foldergrowth_buff)
@@ -262,38 +269,19 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_coverage(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    built=BUILT,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/coverage.png",
-                )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_directness(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    built=BUILT,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/directness.png",
-                    x_meter=True,
-                )
-                # TODO Remove it and put with saved values instead
-                fig, ax = plot.plot_relative_directness(
-                    G_graph[name],
-                    order_growth,
-                    show=False,
-                    built=BUILT,
-                    save=True,
-                    close=True,
-                    filepath=foldername + "/relative_directness.png",
-                    x_meter=True,
-                )
+                logger.info("Plot growth")
+                for met in metrics_dict:
+                    if met == "xx":
+                        pass
+                    else:
+                        fig, ax = plt.subplots(figsize=(16, 9))
+                        sns.lineplot(
+                            x=metrics_dict["xx"], y=metrics_dict[met], ax=ax, marker="o"
+                        )
+                        ax.set_xlabel("Meters built")
+                        plt.tight_layout()
+                        fig.savefig(foldername + f"/{met}.png", dpi=100)
+                        plt.close()
             # foldername = (
             #     "./data/processed/ignored_files/utg/"
             #     + name

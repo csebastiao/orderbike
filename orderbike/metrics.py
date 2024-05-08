@@ -3,6 +3,7 @@
 Functions to measure metrics of a graph.
 """
 
+import logging
 import random
 
 import networkx as nx
@@ -10,6 +11,8 @@ import numpy as np
 import shapely
 
 from .utils import dist_vector, get_node_positions
+
+logger = logging.getLogger(__name__)
 
 
 def growth_random(G):
@@ -22,16 +25,23 @@ def growth_random(G):
 def growth_betweenness(G, weight="length"):
     """Return the list of all edges of G ranked in descending order of edge betweenness."""
     ebet = nx.edge_betweenness_centrality(G, weight=weight)
-    return [key for key, val in sorted(ebet.items(), key=lambda x: x[1], reverse=True)]
+    return [
+        [key, val]
+        for key, val in sorted(ebet.items(), key=lambda x: x[1], reverse=True)
+    ]
 
 
 def growth_closeness(G, weight="length"):
     """Return the list of all edges of G ranked in descending order of edge closeness, as the mean of their closeness nodes."""
     nclo = nx.closeness_centrality(G, distance=weight)
     eclo = {e: (nclo[e[0]] + nclo[e[1]]) / 2 for e in G.edges}
-    return [key for key, val in sorted(eclo.items(), key=lambda x: x[1], reverse=True)]
+    return [
+        [key, val]
+        for key, val in sorted(eclo.items(), key=lambda x: x[1], reverse=True)
+    ]
 
 
+# TODO Add if order is additive an update argument to stop looking when maximum buffer size is reached to optimize
 def growth_coverage(
     G,
     edge,
@@ -104,6 +114,7 @@ def prefunc_growth_adaptive_coverage(
         buff_size = max_buff
     elif order == "subtractive":
         buff_size = min_buff
+    logger.info(f"Starting buffer size is {buff_size}.")
     geom = {
         edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
         for edge in G_actual.edges
@@ -144,8 +155,13 @@ def upfunc_growth_adaptive_coverage(
     new_area = shapely.ops.unary_union(list(geom.values())).area
     if order == "subtractive":
         if buff_size < max_buff:
-            change = (new_area - actual_area) / step_geom.area
+            change = (new_area - actual_area) / (
+                step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
+            )
             if change > threshold_max_change:
+                logger.debug(
+                    f"Change is {change}, higher than threshold {threshold_max_change}, increasing buffer size."
+                )
                 buff_size = buff_size * 2
                 if buff_size >= max_buff:
                     buff_size = max_buff
@@ -155,8 +171,13 @@ def upfunc_growth_adaptive_coverage(
                 }
     elif order == "additive":
         if buff_size > min_buff:
-            change = (new_area - actual_area) / step_geom.area
+            change = (new_area - actual_area) / (
+                step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
+            )
             if change < threshold_min_change:
+                logger.debug(
+                    f"Change is {change}, lower than threshold {threshold_min_change}, reducing buffer size."
+                )
                 buff_size = buff_size / 2
                 if buff_size <= min_buff:
                     buff_size = min_buff
@@ -164,6 +185,7 @@ def upfunc_growth_adaptive_coverage(
                     edge: G.edges[edge]["geometry"].buffer(buff_size)
                     for edge in G.edges
                 }
+    logger.debug(f"New buffer size is {buff_size}.")
     return {
         "pregraph": G,
         "order": order,

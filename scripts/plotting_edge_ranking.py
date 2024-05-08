@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utg import utils as utgut
 
+# TODO Fix all arrays must be of the same length thing
 if __name__ == "__main__":
     folderoots = "./data/processed/ignored_files/utg"
     sns.set_theme(style="whitegrid")
