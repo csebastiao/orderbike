@@ -31,7 +31,7 @@ def auc_from_metrics_dict(met_dict, met, **kwargs):
 
 if __name__ == "__main__":
     # TODO Finish it
-    folderoots = "./data/processed/ignored_files/utg"
+    folderoots = "./data/processed/ignored_files/utg_grid_wviz"
     sns.set_theme(style="whitegrid")
     # Open for all toy graphs
     for toy_graph_folder in [
@@ -134,6 +134,7 @@ if __name__ == "__main__":
             x="AUC of Directness",
             y="AUC of Coverage",
             style="Order",
+            markers=["o", "P"],
             hue="Metric optimized",
             ax=ax,
             s=100,
@@ -159,6 +160,7 @@ if __name__ == "__main__":
             x="AUC of Directness",
             y="AUC of Coverage",
             style="Order",
+            markers=["o", "P"],
             hue="Metric optimized",
             ax=ax,
             s=100,
@@ -191,6 +193,7 @@ if __name__ == "__main__":
             x="AUC of Directness",
             y="AUC of Relative Directness",
             style="Order",
+            markers=["o", "P"],
             hue="Metric optimized",
             ax=ax,
             s=100,
@@ -223,6 +226,7 @@ if __name__ == "__main__":
             x="AUC of Directness",
             y="AUC of Relative Directness",
             style="Order",
+            markers=["o", "P"],
             hue="Metric optimized",
             ax=ax,
             s=100,

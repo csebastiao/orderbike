@@ -3,16 +3,13 @@
 Functions to measure metrics of a graph.
 """
 
-import logging
 import random
 
 import networkx as nx
 import numpy as np
 import shapely
 
-from .utils import dist_vector, get_node_positions
-
-logger = logging.getLogger(__name__)
+from .utils import dist_vector, get_node_positions, log
 
 
 def growth_random(G):
@@ -114,7 +111,7 @@ def prefunc_growth_adaptive_coverage(
         buff_size = max_buff
     elif order == "subtractive":
         buff_size = min_buff
-    logger.info(f"Starting buffer size is {buff_size}.")
+    log.info(f"Starting buffer size for {order} adapative coverage is {buff_size}.")
     geom = {
         edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
         for edge in G_actual.edges
@@ -159,33 +156,36 @@ def upfunc_growth_adaptive_coverage(
                 step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
             )
             if change > threshold_max_change:
-                logger.debug(
+                log.debug(
                     f"Change is {change}, higher than threshold {threshold_max_change}, increasing buffer size."
                 )
                 buff_size = buff_size * 2
                 if buff_size >= max_buff:
                     buff_size = max_buff
+                log.debug(f"New buffer size is {buff_size}.")
                 geom = {
                     edge: G.edges[edge]["geometry"].buffer(buff_size)
                     for edge in G.edges
                 }
+                new_area = shapely.ops.unary_union(list(geom.values())).area
     elif order == "additive":
         if buff_size > min_buff:
             change = (new_area - actual_area) / (
                 step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
             )
             if change < threshold_min_change:
-                logger.debug(
+                log.debug(
                     f"Change is {change}, lower than threshold {threshold_min_change}, reducing buffer size."
                 )
                 buff_size = buff_size / 2
                 if buff_size <= min_buff:
                     buff_size = min_buff
+                log.debug(f"New buffer size is {buff_size}.")
                 geom = {
                     edge: G.edges[edge]["geometry"].buffer(buff_size)
                     for edge in G.edges
                 }
-    logger.debug(f"New buffer size is {buff_size}.")
+                new_area = shapely.ops.unary_union(list(geom.values())).area
     return {
         "pregraph": G,
         "order": order,

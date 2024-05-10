@@ -5,8 +5,6 @@ Script to find growth order on 5 urban toy graphs, with all growth strategies, d
 
 import os
 import json
-import tqdm
-import logging
 
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -14,43 +12,34 @@ import seaborn as sns
 from utg import create_graph
 from utg import utils as utgut
 from orderbike import growth, plot, metrics
+from orderbike.utils import log
 
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    fh = logging.FileHandler("growth.log")
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
-    )
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(ch)
     BUILT = False
     CONNECTED = True
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
     G_graph = {}
-    G_graph["single_bridge"] = create_graph.create_bridge_graph(
-        outrows=3, sscols=4, bridges=1, block_side=100, blength=300
-    )
-    G_graph["multiple_bridges"] = create_graph.create_bridge_graph(
-        outrows=3, sscols=4, bridges=3, block_side=100, blength=300
-    )
-    G_graph["grid_wdiagonal"] = create_graph.create_grid_graph(
-        rows=10, cols=10, diagonal=True, width=100
-    )
     G_graph["grid"] = create_graph.create_grid_graph(
         rows=10, cols=10, diagonal=False, width=100
     )
-    G_graph["radio_concentric"] = create_graph.create_concentric_graph(
-        radial=8, zones=6, radius=100, straight_edges=True, center=True
-    )
+    # G_graph["single_bridge"] = create_graph.create_bridge_graph(
+    #     outrows=3, sscols=4, bridges=1, block_side=100, blength=300
+    # )
+    # G_graph["multiple_bridges"] = create_graph.create_bridge_graph(
+    #     outrows=3, sscols=4, bridges=3, block_side=100, blength=300
+    # )
+    # G_graph["grid_wdiagonal"] = create_graph.create_grid_graph(
+    #     rows=10, cols=10, diagonal=True, width=100
+    # )
+    # G_graph["radio_concentric"] = create_graph.create_concentric_graph(
+    #     radial=8, zones=6, radius=100, straight_edges=True, center=True
+    # )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    for name in tqdm.tqdm(["grid"]):
+    for name in ["grid"]:
+        log.info(f"Start all computations for the {name} graph")
         foldername = "./data/processed/ignored_files/utg/" + name
         if not os.path.exists(foldername):
             os.makedirs(foldername)
@@ -69,7 +58,7 @@ if __name__ == "__main__":
                 "directness",
                 "relative_directness",
             ]:
-                logger.info(
+                log.info(
                     f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
                 )
                 if METRICNAME == "coverage":
@@ -123,7 +112,7 @@ if __name__ == "__main__":
                 foldergrowth = foldername + "/growth"
                 if not os.path.exists(foldergrowth):
                     os.makedirs(foldergrowth)
-                logger.info("Plot growth")
+                log.info("Plot growth")
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -137,7 +126,7 @@ if __name__ == "__main__":
                 plot.make_growth_video(
                     foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
                 )
-                logger.info("Plot growth with buffer and metrics")
+                log.info("Plot growth with buffer and metrics")
                 foldergrowth_buff = foldername + "/growth_buffer"
                 if not os.path.exists(foldergrowth_buff):
                     os.makedirs(foldergrowth_buff)
@@ -168,7 +157,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
-                logger.info("Plot metrics")
+                log.info("Plot metrics")
                 for met in metrics_dict:
                     if met == "xx":
                         pass
@@ -182,7 +171,7 @@ if __name__ == "__main__":
                         fig.savefig(foldername + f"/{met}.png", dpi=100)
                         plt.close()
             for METRICNAME in ranking_func:
-                logger.info(
+                log.info(
                     f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
                 )
                 metrics_dict, order_growth = growth.order_ranked_network_growth(
@@ -224,7 +213,7 @@ if __name__ == "__main__":
                 foldergrowth = foldername + "/growth"
                 if not os.path.exists(foldergrowth):
                     os.makedirs(foldergrowth)
-                logger.info("Plot growth")
+                log.info("Plot growth")
                 plot.plot_growth(
                     G_graph[name],
                     order_growth,
@@ -238,7 +227,7 @@ if __name__ == "__main__":
                 plot.make_growth_video(
                     foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
                 )
-                logger.info("Plot growth with buffer and metrics")
+                log.info("Plot growth with buffer and metrics")
                 foldergrowth_buff = foldername + "/growth_buffer"
                 if not os.path.exists(foldergrowth_buff):
                     os.makedirs(foldergrowth_buff)
@@ -269,7 +258,7 @@ if __name__ == "__main__":
                     close=True,
                     filepath=foldername + "/order_growth.png",
                 )
-                logger.info("Plot growth")
+                log.info("Plot metrics")
                 for met in metrics_dict:
                     if met == "xx":
                         pass
@@ -282,42 +271,44 @@ if __name__ == "__main__":
                         plt.tight_layout()
                         fig.savefig(foldername + f"/{met}.png", dpi=100)
                         plt.close()
-            # foldername = (
-            #     "./data/processed/ignored_files/utg/"
-            #     + name
-            #     + "/"
-            #     + "random_trials"
-            #     + "_"
-            #     + ORDERNAME
-            # )
-            # if CONNECTED:
-            #     foldername += "_connected"
-            # if BUILT:
-            #     foldername += "_built"
-            # if not os.path.exists(foldername):
-            #     os.makedirs(foldername)
-            # NUM_TRIALS = 1000
-            # md = {}
-            # md["growth"] = "ranked"
-            # md["built"] = BUILT
-            # md["keep_connected"] = CONNECTED
-            # md["metric"] = "random"
-            # md["order"] = ORDERNAME
-            # md["buff_size"] = BUFF_SIZE
-            # md["trials"] = NUM_TRIALS
-            # with open(foldername + "/metadata.json", "w") as f:
-            #     json.dump(md, f)
-            # for i in range(NUM_TRIALS):
-            #     metrics_dict, order_growth = growth.order_ranked_network_growth(
-            #         G_graph[name],
-            #         built=BUILT,
-            #         keep_connected=CONNECTED,
-            #         order=ORDERNAME,
-            #         ranking_func=metrics.growth_random,
-            #         save_metrics=True,
-            #         buff_size_metrics=BUFF_SIZE,
-            #     )
-            #     with open(foldername + f"/order_growth_{i:03}.json", "w") as f:
-            #         json.dump(order_growth, f)
-            #     with open(foldername + f"/metrics_growth_{i:03}.json", "w") as f:
-            #         json.dump(metrics_dict, f)
+        log.info("Finished !")
+        # foldername = (
+        #     "./data/processed/ignored_files/utg/"
+        #     + name
+        #     + "/"
+        #     + "random_trials"
+        #     + "_"
+        #     + ORDERNAME
+        # )
+        # if CONNECTED:
+        #     foldername += "_connected"
+        # if BUILT:
+        #     foldername += "_built"
+        # if not os.path.exists(foldername):
+        #     os.makedirs(foldername)
+        # NUM_TRIALS = 1000
+        # md = {}
+        # md["growth"] = "ranked"
+        # md["built"] = BUILT
+        # md["keep_connected"] = CONNECTED
+        # md["metric"] = "random"
+        # md["order"] = ORDERNAME
+        # md["buff_size"] = BUFF_SIZE
+        # md["trials"] = NUM_TRIALS
+        # with open(foldername + "/metadata.json", "w") as f:
+        #     json.dump(md, f)
+        # log.info("Start random computations")
+        # for i in range(NUM_TRIALS):
+        #     metrics_dict, order_growth = growth.order_ranked_network_growth(
+        #         G_graph[name],
+        #         built=BUILT,
+        #         keep_connected=CONNECTED,
+        #         order=ORDERNAME,
+        #         ranking_func=metrics.growth_random,
+        #         save_metrics=True,
+        #         buff_size_metrics=BUFF_SIZE,
+        #     )
+        #     with open(foldername + f"/order_growth_{i:03}.json", "w") as f:
+        #         json.dump(order_growth, f)
+        #     with open(foldername + f"/metrics_growth_{i:03}.json", "w") as f:
+        #         json.dump(metrics_dict, f)

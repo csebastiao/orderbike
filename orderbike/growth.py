@@ -3,7 +3,6 @@
 Functions to make subtractive or additive growth of a graph.
 """
 
-import logging
 import tqdm
 
 import networkx as nx
@@ -11,8 +10,7 @@ import numpy as np
 import shapely
 
 from . import metrics
-
-logger = logging.getLogger(__name__)
+from .utils import log
 
 
 def order_ranked_network_growth(
@@ -40,9 +38,6 @@ def order_ranked_network_growth(
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
-    logger.info(
-        f"Started running the order_ranked_network_growth function with {ranking_func.__name__} metric, with {order} order, with connectedness constraint that is {keep_connected}, and with built constraint that is {built}."
-    )
     init_edges = _init_edges(G, built, order)
     absolute_ranking = ranking_func(G, **kwargs)
     # If keeping connected need to choose for the order the one with the highest/smallest ranking to add/remove
@@ -54,7 +49,7 @@ def order_ranked_network_growth(
             valid_edges = _valid_edges(
                 G, G_actual, init_edges, built, keep_connected, order
             )
-            logger.debug(f"Step {i}: {len(valid_edges)} valid edges to choose from.")
+            log.debug(f"Step {i}: {len(valid_edges)} valid edges to choose from.")
             testing_ranking = absolute_ranking.copy()
             # In subtractive order, choose the edge with the lowest ranking, in additive the highest
             if order == "subtractive":
@@ -63,15 +58,25 @@ def order_ranked_network_growth(
                 for edge in testing_ranking:
                     if edge in valid_edges:
                         step = edge
-                        logger.debug(f"Edge {edge} is chosen.")
                         absolute_ranking.remove(step)
                         break
             else:
-                mets = [val[1] for val in testing_ranking]
-                edges = [val[0] for val in testing_ranking]
-                step = _find_optimal_edge(mets, edges)
-                step_met = mets[[idx for idx, i in enumerate(edges) if i == step][0]]
+                valid_cases = [
+                    [edge, met]
+                    for edge, met in testing_ranking
+                    if edge
+                    in _valid_edges(
+                        G, G_actual, init_edges, built, keep_connected, order
+                    )
+                ]
+                valid_edges = [val[0] for val in valid_cases]
+                valid_mets = [val[1] for val in valid_cases]
+                step = _find_optimal_edge(valid_mets, valid_edges)
+                step_met = valid_mets[
+                    [idx for idx, i in enumerate(valid_edges) if i == step][0]
+                ]
                 absolute_ranking.remove([step, step_met])
+            log.debug(f"Step {i}: optimal edge chosen is {step}.")
             G_actual = _update_actual_graph(G, G_actual, step, order)
             order_growth.append(step)
         if order == "subtractive":
@@ -87,13 +92,10 @@ def order_ranked_network_growth(
         if order == "subtractive" and built is False:
             order_growth = order_growth[1:]
     if save_metrics:
-        logger.info("Saving all metrics.")
         metrics_dict = compute_metrics(
             G, order_growth, built=built, x_meter=True, buff_size=buff_size_metrics
         )
-        logger.debug("Finished computing !")
         return metrics_dict, order_growth
-    logger.debug("Finished computing !")
     return order_growth
 
 
@@ -129,37 +131,22 @@ def order_dynamic_network_growth(
     Returns:
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
-    logger.info(
-        f"Started running the order_dynamic_network_growth function, with {order} order, with connectedness constraint that is {keep_connected}, and with built constraint that is {built}."
-    )
     if metric is not None:
-        logger.debug(f"Metric chosen is is {metric}.")
+        log.debug(f"Metric chosen is is {metric}.")
         metric_dict = _metric_dictionaries()[metric]
         metric_func = metric_dict["metric_func"]
         precomp_func = metric_dict["precomp_func"]
         update_func = metric_dict["update_func"]
     else:
-        logger.debug("No metric chosen by name.")
         if metric_func is None:
             raise ValueError(
                 "Plaise enter either a metric name or functions to compute growth"
             )
-    for name, func in [
-        ["Metric", metric_func],
-        ["Precomputation", precomp_func],
-        ["Update", update_func],
-    ]:
-        if func is not None:
-            namefunc = func.__name__
-        else:
-            namefunc = "None"
-        logger.debug(f"{name} function is {namefunc}.")
     order_growth = []
     init_edges = _init_edges(G, built, order)
     G_actual = _init_graph(G, order, init_edges)
     num_step = len(G.edges) - len(init_edges)
     total_step = range(num_step)
-    logger.info(f"{num_step} number of steps.")
     if progress_bar:
         total_step = tqdm.tqdm(total_step)
     if precomp_func is not None:
@@ -170,7 +157,7 @@ def order_dynamic_network_growth(
         valid_edges = _valid_edges(
             G, G_actual, init_edges, built, keep_connected, order
         )
-        logger.debug(f"Step {i}: {len(valid_edges)} valid edges to choose from.")
+        log.debug(f"Step {i}: {len(valid_edges)} valid edges to choose from.")
         metric_vals = []
         # Remove/add an edge to the actual graph and compute the metric on it
         for edge in valid_edges:
@@ -179,7 +166,7 @@ def order_dynamic_network_growth(
             metric_vals.append(temp_m)
         # Choose the edge that gives the maximum value for the metric
         step = _find_optimal_edge(metric_vals, valid_edges)
-        logger.debug(f"Step {i}: optimal edge chosen is {step}.")
+        log.debug(f"Step {i}: optimal edge chosen is {step}.")
         G_actual = _update_actual_graph(G, G_actual, step, order)
         order_growth.append(step)
         if update_func is not None:
@@ -187,24 +174,21 @@ def order_dynamic_network_growth(
     if order == "subtractive":
         order_growth.reverse()
     if save_metrics:
-        logger.info("Saving all metrics.")
         metrics_dict = compute_metrics(
             G, order_growth, built=built, x_meter=True, buff_size=buff_size_metrics
         )
-        logger.debug("Finished computing !")
         return metrics_dict, order_growth
-    logger.debug("Finished computing !")
     return order_growth
 
 
 def _find_optimal_edge(vals, edges):
     """Get the edge with the maximal value, if there are multiple ones with maximal value pick one of them at random."""
     m = max(vals)
-    logger.info(f"The maximum value is {m}, the mimimum value is {min(vals)}")
+    log.debug(f"The maximum value is {m}, the minimum value is {min(vals)}")
     optimum = [edge for edge, val in zip(edges, vals) if val == m]
     # When more than one optimal value, return a random value from all the optimal ones
     if len(optimum) > 1:
-        logger.debug(f"{len(optimum)} steps are optimal, choosing one randomly")
+        log.debug(f"{len(optimum)} steps are optimal, choosing one randomly")
         rng = np.random.default_rng()
         # Need to change to list with built-in function to avoid numpy int type for values, and then to tuple for the list
         return tuple(rng.choice(optimum).tolist())
@@ -346,11 +330,9 @@ def _init_edges(G, built, order):
     """Return the initial edges for the first step of the growth of G."""
     if built:
         init_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
-        logger.info(f"Built part, with {len(init_edges)} initial edges.")
         return init_edges
     # If no built part, start from a seed being a random edge from the node with the highest closeness
     else:
-        logger.info("No built part, starting/finishing with one edge.")
         # If subtractive, don't care about finding an initial edge because will be found through optimization, dummy variable
         if order == "subtractive":
             return [0]

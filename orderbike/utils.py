@@ -5,12 +5,22 @@ simplify the graph by removing interstitial nodes and by going from a
 multidigraph to a graph.
 """
 
+import logging
+
 import numpy as np
 from haversine import haversine, haversine_vector
 from networkx import Graph, get_node_attributes, set_edge_attributes
 from osmnx import get_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
+
+# Root logger that is then used in functions in growth and metrics. Comment filename to avoid saving results, change level to keep only some messages.
+logging.basicConfig(
+    filename="growth.log",
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+log = logging.getLogger()
 
 
 def dist(v1, v2):
