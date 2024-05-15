@@ -132,7 +132,6 @@ def order_dynamic_network_growth(
         list: Ordered list of edges. For subtractive (resp. additive) order, the first edge in the list is the last (resp. first) to add. If built is True, will only have edges with "built" != 1. Else, will have all edges of G except the seed.
     """
     if metric is not None:
-        log.debug(f"Metric chosen is is {metric}.")
         metric_dict = _metric_dictionaries()[metric]
         metric_func = metric_dict["metric_func"]
         precomp_func = metric_dict["precomp_func"]

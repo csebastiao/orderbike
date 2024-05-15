@@ -21,7 +21,8 @@ if __name__ == "__main__":
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
     BEGIN_TRIAL = 0
-    END_TRIAL = 1
+    END_TRIAL = 20
+    PAD = len(str(END_TRIAL))
     foldername = "./data/processed/ignored_files/utg_grid_trials/"
     if not os.path.exists(foldername):
         os.makedirs(foldername)
@@ -33,9 +34,12 @@ if __name__ == "__main__":
         close=True,
         filepath=foldername + "/picture.png",
     )
-    for ORDERNAME in ["additive", "subtractive"]:
+    for ORDERNAME in [
+        "additive",
+        "subtractive",
+    ]:
         for METRICNAME in [
-            "coverage",
+            # "coverage",
             "adaptive_coverage",
             "directness",
             "relative_directness",
@@ -72,9 +76,9 @@ if __name__ == "__main__":
                     buff_size_metrics=BUFF_SIZE,
                     **kwargs,
                 )
-                with open(foldername + f"/order_growth_{i:02}.json", "w") as f:
+                with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
                     json.dump(order_growth, f)
-                with open(foldername + f"/metrics_growth_{i:02}.json", "w") as f:
+                with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
                     json.dump(metrics_dict, f)
         for METRICNAME in ranking_func:
             log.info(f"Start computation for metric {METRICNAME}, order {ORDERNAME}")
@@ -92,17 +96,17 @@ if __name__ == "__main__":
                 os.makedirs(foldername)
             for i in range(BEGIN_TRIAL, END_TRIAL):
                 log.info(f"Start trial {i}")
-            metrics_dict, order_growth = growth.order_ranked_network_growth(
-                G,
-                built=BUILT,
-                keep_connected=CONNECTED,
-                order=ORDERNAME,
-                ranking_func=ranking_func[METRICNAME],
-                save_metrics=True,
-                buff_size_metrics=BUFF_SIZE,
-            )
-            with open(foldername + f"/order_growth_{i:02}.json", "w") as f:
-                json.dump(order_growth, f)
-            with open(foldername + f"/metrics_growth_{i:02}.json", "w") as f:
-                json.dump(metrics_dict, f)
+                metrics_dict, order_growth = growth.order_ranked_network_growth(
+                    G,
+                    built=BUILT,
+                    keep_connected=CONNECTED,
+                    order=ORDERNAME,
+                    ranking_func=ranking_func[METRICNAME],
+                    save_metrics=True,
+                    buff_size_metrics=BUFF_SIZE,
+                )
+                with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
+                    json.dump(order_growth, f)
+                with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
+                    json.dump(metrics_dict, f)
     log.info("Finished !")

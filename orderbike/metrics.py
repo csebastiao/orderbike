@@ -152,7 +152,7 @@ def upfunc_growth_adaptive_coverage(
     new_area = shapely.ops.unary_union(list(geom.values())).area
     if order == "subtractive":
         if buff_size < max_buff:
-            change = (new_area - actual_area) / (
+            change = (actual_area - new_area) / (
                 step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
             )
             if change > threshold_max_change:
