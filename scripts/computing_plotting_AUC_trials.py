@@ -1,5 +1,5 @@
 """
-Script to plot as a scatterplot the Area Under Curve for the Coverage versus the Area Under Curve for the Directness.
+Script to plot as a scatterplot the Area Under Curve for the Coverage versus the Area Under Curve for the Directness, for multiple trials for all strategies.
 """
 
 import pathlib
@@ -30,7 +30,6 @@ def auc_from_metrics_dict(met_dict, met, **kwargs):
 
 
 if __name__ == "__main__":
-    # TODO Finish it
     folderoots = "./data/processed/ignored_files/utg_grid_trials"
     sns.set_theme(style="whitegrid")
     # Open for all toy graphs
@@ -79,31 +78,33 @@ if __name__ == "__main__":
         ],
     )
     df_growth.to_json(str(folderoots) + "/auc_table_growth.json")
-    # TODO: Add with higher alpha the mean value or something
-    # TODO: Find way to show as ellipsoid of standard deviation instead
+    df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
     fig, ax = plt.subplots(figsize=(16, 9))
     ax.set_title("Growth strategies, AUC comparison")
     g = sns.scatterplot(
         df_growth,
         x="AUC of Directness",
         y="AUC of Coverage",
-        style="Order",
-        markers=["P", "o"],
-        style_order=["additive", "subtractive"],
         hue="Metric optimized",
         hue_order=[
             "coverage",
-            "adapative_coverage",
+            "adaptive_coverage",
             "directness",
             "relative_directness",
             "betweenness",
             "closeness",
             "random",
         ],
+        style="Order",
+        markers=["P", "o"],
+        style_order=["additive", "subtractive"],
+        palette=sns.color_palette("deep")[:7],
         ax=ax,
         s=50,
-        alpha=0.3,
+        alpha=0.4,
     )
+    for lh in g.legend_.legend_handles[:-2]:
+        lh.set_marker("o")
     for lh in g.legend_.legend_handles:
         lh.set_alpha(1)
     plt.tight_layout()
@@ -121,17 +122,20 @@ if __name__ == "__main__":
         hue="Metric optimized",
         hue_order=[
             "coverage",
-            "adapative_coverage",
+            "adaptive_coverage",
             "directness",
             "relative_directness",
             "betweenness",
             "closeness",
             "random",
         ],
+        palette=sns.color_palette("deep")[:7],
         ax=ax,
         s=50,
-        alpha=0.3,
+        alpha=0.4,
     )
+    for lh in g.legend_.legend_handles[:-2]:
+        lh.set_marker("o")
     for lh in g.legend_.legend_handles:
         lh.set_alpha(1)
     plt.tight_layout()
