@@ -55,6 +55,11 @@ def clean_isolated_node(G):
     return H
 
 
+def get_node_dict(G):
+    """Get translation of indexed value to node value in G"""
+    return {idx: node for idx, node in enumerate(G.nodes)}
+
+
 def get_area_under_curve(curve, xx=None, normalize_y=False, normalize_x=False):
     """Get area under the curve to compare the efficiency of a curve"""
     if xx is None:

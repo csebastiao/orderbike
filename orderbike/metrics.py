@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 import shapely
 
-from .utils import dist_vector, get_node_positions, log
+from .utils import dist_vector, get_node_positions, log, get_node_dict
 
 
 def growth_random(G):
@@ -217,11 +217,6 @@ def prefunc_growth_relative_directness(G, G_final, order):
     return {"sm_final": sm_final, "G_final": G_final, "order": order}
 
 
-def upfunc_growth_relative_directness(G, G_final, step, order):
-    """Pre-compute the final shortesth network path length matrix of the graph."""
-    return prefunc_growth_relative_directness(G, G_final, order)
-
-
 # def growth_directness(G, edge, em=[]):
 #     sm = get_shortest_network_path_length_matrix(G)
 #     mat = _avoid_zerodiv_matrix(em, sm)
@@ -236,6 +231,91 @@ def upfunc_growth_relative_directness(G, G_final, step, order):
 #     pass
 
 
+def growth_perceived_directness(
+    G, edge, em=[], spm=[], sm=[], G_final=None, order=None, factor=4, node_dict={}
+):
+    H = G_final.copy()
+    if order == "subtractive":
+        H.edges[edge]["perceived_length"] = factor * H.edges[edge]["length"]
+        sm_temp = sm.copy()
+        for id_or, arr in enumerate(spm):
+            for id_dest, path in enumerate(arr):
+                if edge in path:
+                    sm_temp[id_or][id_dest] = nx.shortest_path_length(
+                        H,
+                        node_dict[id_or],
+                        node_dict[id_dest],
+                        weight="perceived_length",
+                        method="dijkstra",
+                    )
+    elif order == "additive":
+        H.edges[edge]["perceived_length"] = H.edges[edge]["length"]
+        sm = get_shortest_network_path_length_matrix(G, weight="perceived_length")
+    mat = _avoid_zerodiv_matrix(em, sm)
+    return np.sum(mat) / np.count_nonzero(mat)
+
+
+def prefunc_growth_overall_directness(G, G_final, order, factor=4):
+    if order == "subtractive":
+        edge_built = [e for e in G.edges]
+        for edge in G_final.edges:
+            G_final.edges[edge]["perceived_length"] = G_final.edges[edge]["length"]
+            if edge not in edge_built:
+                G_final.edges[edge]["perceived_length"] *= factor
+        node_list = list(G.nodes)
+        spm = []
+        for ids, dic in sorted(
+            dict(nx.all_pairs_dijkstra_path(G, weight="perceived_length")).items()
+        ):
+            spm.append([val for key, val in sorted(_fill_dict(dic, node_list).items())])
+        sm = sm_from_spm(G_final, spm, weight="perceived_length")
+    elif order == "additive":
+        spm = []
+        sm = []
+    em = get_euclidean_distance_matrix(G_final)
+    node_dict = get_node_dict(G)
+    return {
+        "G_final": G_final,
+        "order": order,
+        "factor": factor,
+        "node_dict": node_dict,
+        "em": em,
+        "sm": sm,
+        "spm": spm,
+    }
+
+
+def upfunc_growth_overall_directness(
+    G, G_actual, step, order, factor=0, node_dict={}, em=[], sm=[], spm=[]
+):
+    if order == "subtractive":
+        G.edges[step]["perceived_length"] = factor * G.edges[step]["length"]
+        new_spm = spm.copy()
+        for id_or, arr in enumerate(spm):
+            for id_dest, path in enumerate(arr):
+                if step in path:
+                    new_shortest_path = nx.shortest_path(
+                        G,
+                        node_dict[id_or],
+                        node_dict[id_dest],
+                        weight="perceived_length",
+                        method="dijkstra",
+                    )
+                    new_spm[id_or][id_dest] = new_shortest_path
+                    sm[id_or][id_dest] = nx.path_weight(
+                        G, new_shortest_path, weight="perceived_length"
+                    )
+    return {
+        "G_final": G,
+        "order": order,
+        "factor": factor,
+        "node_dict": node_dict,
+        "em": em,
+        "sm": sm,
+        "spm": new_spm,
+    }
+
+
 def directness(G, edge):
     """Get directness of the graph G. Works with growth.dynamic_growth."""
     mat = get_directness_matrix(G)
@@ -243,19 +323,24 @@ def directness(G, edge):
     return np.sum(mat) / np.count_nonzero(mat)
 
 
-def get_directness_matrix(G, lonlat=False):
+def sm_from_spm(G, spm, weight="length"):
+    return [[nx.path_weight(G, path, weight=weight) for path in arr] for arr in spm]
+
+
+def get_directness_matrix(G, lonlat=False, weight="length"):
     """Get the symmetrical directness matrix of a graph G. If lonlat is True, node positions are in geographic CRS."""
-    shortest_matrix = get_shortest_network_path_length_matrix(G)
+    shortest_matrix = get_shortest_network_path_length_matrix(G, weight=weight)
     euclidean_matrix = get_euclidean_distance_matrix(G, lonlat=lonlat)
     return _avoid_zerodiv_matrix(euclidean_matrix, shortest_matrix)
 
 
-def get_shortest_network_path_length_matrix(G):
+def get_shortest_network_path_length_matrix(G, weight="length"):
     """
     Get the symmetric matrix of shortest network path length of a graph G, with weight being called "length". The shortest network path length between the node i and j are in [i, j] and [j, i]. All diagonal values are 0. Value for pairs of nodes from different components is 0.
 
     Args:
         G (networkx.Graph): Graph on which we want to find shortest network path length for all pairs of nodes.
+        weight (str, optional): Weight used in Dijkstra algorithm. Defaults to length.
 
     Returns:
         numpy.array: Matrix of shortest network path length for all pairs of nodes of G. Matrix with a shape (N, N), with N being the number of nodes in G
@@ -264,7 +349,7 @@ def get_shortest_network_path_length_matrix(G):
     shortest_matrix = []
     # Sort the nodes in both loops
     for ids, dic in sorted(
-        dict(nx.all_pairs_dijkstra_path_length(G, weight="length")).items()
+        dict(nx.all_pairs_dijkstra_path_length(G, weight=weight)).items()
     ):
         # Add 0 values for nodes not in the same components to get symmetrical matrix
         shortest_matrix.append(

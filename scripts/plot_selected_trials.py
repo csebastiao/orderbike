@@ -22,11 +22,19 @@ if __name__ == "__main__":
             oc = df_growth["Order"] == order
             mc = df_growth["Metric optimized"] == metric
             paddings.append(len(str(len(df_growth[oc & mc]) - 1)))
+            paddings.append(len(str(len(df_growth[oc & mc]) - 1)))
+            paddings.append(len(str(len(df_growth[oc & mc]) - 1)))
+            paddings.append(len(str(len(df_growth[oc & mc]) - 1)))
             mincov = df_growth[oc & mc]["AUC of Coverage"].idxmin()
             maxcov = df_growth[oc & mc]["AUC of Coverage"].idxmax()
             mindir = df_growth[oc & mc]["AUC of Directness"].idxmin()
             maxdir = df_growth[oc & mc]["AUC of Directness"].idxmax()
-            selected_id.append([mincov, "min_cov"])
+            selected_id.append(
+                [
+                    mincov,
+                    "min_cov",
+                ]
+            )
             selected_id.append([maxcov, "max_cov"])
             selected_id.append([mindir, "min_dir"])
             selected_id.append([maxdir, "max_dir"])
