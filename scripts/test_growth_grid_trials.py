@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
     BEGIN_TRIAL = 0
-    END_TRIAL = 20
+    END_TRIAL = 50
     PAD = len(str(END_TRIAL))
     foldername = "./data/processed/ignored_files/utg_grid_trials/"
     if not os.path.exists(foldername):
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         "subtractive",
     ]:
         for METRICNAME in [
-            # "coverage",
+            "coverage",
             "adaptive_coverage",
             "directness",
             "relative_directness",
