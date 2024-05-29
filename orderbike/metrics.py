@@ -231,6 +231,7 @@ def prefunc_growth_relative_directness(G, G_final, order):
 #     pass
 
 
+# TODO
 def growth_perceived_directness(
     G, edge, em=[], spm=[], sm=[], G_final=None, order=None, factor=4, node_dict={}
 ):
