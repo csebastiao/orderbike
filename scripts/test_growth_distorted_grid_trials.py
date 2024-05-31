@@ -17,7 +17,7 @@ if __name__ == "__main__":
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
-    TESTED_GRAPH = 5
+    TESTED_GRAPH = 1
     for i in range(TESTED_GRAPH):
         log.info(f"Test on distorted grid number {i}")
         G = create_graph.create_distorted_grid_graph(
@@ -26,7 +26,8 @@ if __name__ == "__main__":
         # Put slightly more than 150 to avoid rounding wizardry
         BUFF_SIZE = 152
         NUM_TRIAL = 10
-        PAD = len(str(NUM_TRIAL))
+        NUM_RAND_TRIAL = 100
+        PAD = len(str(max(NUM_TRIAL, NUM_RAND_TRIAL) - 1))
         foldergraph = f"./data/processed/ignored_files/utg_distorted_grids/dg_{i}/"
         if not os.path.exists(foldergraph):
             os.makedirs(foldergraph)
@@ -111,7 +112,7 @@ if __name__ == "__main__":
                     json.dump(order_growth, f)
                 with open(foldername + f"/metrics_growth_{0:0{PAD}}.json", "w") as f:
                     json.dump(metrics_dict, f)
-            for i in range(100):
+            for i in range(NUM_RAND_TRIAL):
                 log.info(f"Random computation, order {ORDERNAME}, trial {i}")
                 foldername = foldergraph + "random_" + ORDERNAME
                 if CONNECTED:
@@ -125,12 +126,12 @@ if __name__ == "__main__":
                     built=BUILT,
                     keep_connected=CONNECTED,
                     order=ORDERNAME,
-                    ranking_func=ranking_func[METRICNAME],
+                    ranking_func=metrics.growth_random,
                     save_metrics=True,
                     buff_size_metrics=BUFF_SIZE,
                 )
-                with open(foldername + f"/order_growth_{0:03}.json", "w") as f:
+                with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
                     json.dump(order_growth, f)
-                with open(foldername + f"/metrics_growth_{0:03}.json", "w") as f:
+                with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
                     json.dump(metrics_dict, f)
     log.info("Finished !")
