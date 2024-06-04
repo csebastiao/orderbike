@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Script to find growth order on the grid, with all growth strategies, dynamic and ranked, and random trials.
+Script to find growth order on randomly distorted grids, with all growth strategies, dynamic and ranked, and random trials.
 """
 
 import os
@@ -17,8 +17,8 @@ if __name__ == "__main__":
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
-    TESTED_GRAPH = 1
-    for i in range(TESTED_GRAPH):
+    TESTED_GRAPH = 5
+    for i in range(3, TESTED_GRAPH):
         log.info(f"Test on distorted grid number {i}")
         G = create_graph.create_distorted_grid_graph(
             rows=10, cols=10, width=100, spacing=0.9
