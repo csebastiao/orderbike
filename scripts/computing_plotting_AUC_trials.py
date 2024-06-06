@@ -31,7 +31,7 @@ def auc_from_metrics_dict(met_dict, met, **kwargs):
 
 
 if __name__ == "__main__":
-    for i in range(5):
+    for i in range(4, 5):
         folderoots = f"./data/processed/ignored_files/utg_distorted_grids/dg_{i}/"
         if not os.path.exists(folderoots + "plots/"):
             os.makedirs(folderoots + "plots/")

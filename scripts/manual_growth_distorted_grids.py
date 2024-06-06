@@ -23,7 +23,7 @@ if __name__ == "__main__":
         with open(order, "r") as f:
             arr_ord = json.load(f)
         manual_orders.append([tuple(val) for val in arr_ord])
-    for i in range(3, 5):
+    for i in range(4, 5):
         folderoots = f"./data/processed/ignored_files/utg_distorted_grids/dg_{i}/"
         G = utgut.load_graph(folderoots + "graph.graphml")
         rootsman = folderoots + "manual_additive_connected/"
