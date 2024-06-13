@@ -31,7 +31,7 @@ def auc_from_metrics_dict(met_dict, met, **kwargs):
 
 
 if __name__ == "__main__":
-    folderoots = "./data/processed/ignored_files/utg_three_bridges_trials/"
+    folderoots = "./data/processed/plan_paris/ignored_growth/pruned_paris_multigraph/"
     if not os.path.exists(folderoots + "plots/"):
         os.makedirs(folderoots + "plots/")
     sns.set_theme(style="whitegrid")
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         and "plot" not in str(fold)
         and ".DS_Store" not in str(fold)
     ]:
-        growthname = str(growth_f).split("/")[-1].removesuffix("_connected")
+        growthname = str(growth_f).split("/")[-1].removesuffix("_connected_built")
         if "additive" in growthname:
             order = "additive"
         elif "subtractive" in growthname:
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         palette=sns.color_palette("deep")[:7],
         ax=ax,
         s=50,
-        alpha=0.8,
+        alpha=0.9,
     )
     for lh in g.legend_.legend_handles[:-2]:
         lh.set_marker("o")
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         palette=sns.color_palette("deep")[:7],
         ax=ax,
         s=50,
-        alpha=0.8,
+        alpha=0.9,
     )
     for lh in g.legend_.legend_handles[:-2]:
         lh.set_marker("o")

@@ -17,8 +17,8 @@ if __name__ == "__main__":
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
-    G = create_graph.create_bridge_graph(
-        outrows=3, sscols=4, block_side=100, bridges=3, blength=300
+    G = create_graph.create_concentric_graph(
+        radial=14, zones=4, center=False, radius=100
     )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     NUM_STRIAL = 5
     NUM_RAND_TRIAL = 500
     PAD = len(str(NUM_RAND_TRIAL))
-    folderoots = "./data/processed/ignored_files/utg_three_bridges_trials/"
+    folderoots = "./data/processed/ignored_files/utg_milan_bikenet/"
     if not os.path.exists(folderoots):
         os.makedirs(folderoots)
     utgut.save_graph(G, folderoots + "/graph.graphml")
