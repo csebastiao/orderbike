@@ -17,7 +17,7 @@ from sklearn.metrics import auc
 # Root logger that is then used in functions in growth and metrics. Comment filename to avoid saving results, change level to keep only some messages.
 logging.basicConfig(
     filename="growth.log",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 log = logging.getLogger()

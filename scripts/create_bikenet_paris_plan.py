@@ -13,7 +13,7 @@ from orderbike import plot
 
 if __name__ == "__main__":
     # Read the GeoPackage manually made from QGIS
-    gdf = gpd.read_file("./data/processed/plan_paris/mun_edges_graph_pruned.gpkg")
+    gdf = gpd.read_file("./data/processed/plan_paris/mun_edges_graph_ready.gpkg")
     # Remove invalid geometry
     gdf_filt = gdf[gdf.geometry.apply(lambda x: True if len(x.geoms) == 1 else False)]
     gdf_ls = gdf_filt.copy()
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                     0,
                     geometry=egeom,
                     length=egeom.length,
-                    attribute=attr,
+                    # attribute=attr,
                 )
             H.remove_edge(*e)
     H = nx.convert_node_labels_to_integers(H)
@@ -67,5 +67,9 @@ if __name__ == "__main__":
     H = ox.get_undirected(H)
     ox.save_graphml(
         H,
-        filepath="./data/processed/plan_paris/paris_bikeplan_pruned_multigraph.graphml",
+        filepath="./data/processed/plan_paris/paris_multigraph.graphml",
+    )
+    ox.save_graph_geopackage(
+        H,
+        filepath="./data/processed/plan_paris/paris_multigraph.gpkg",
     )

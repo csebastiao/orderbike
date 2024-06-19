@@ -34,7 +34,7 @@ if __name__ == "__main__":
     folderoots = "./data/processed/plan_paris/ignored_growth/pruned_paris_multigraph/"
     if not os.path.exists(folderoots + "plots/"):
         os.makedirs(folderoots + "plots/")
-    sns.set_theme(style="whitegrid")
+    sns.set(font_scale=1.5, style="whitegrid")
     # Open for all toy graphs
     toy_graph_aucs = []
     # Open for all growth strategies for a toy graph
@@ -46,28 +46,39 @@ if __name__ == "__main__":
         and ".DS_Store" not in str(fold)
     ]:
         growthname = str(growth_f).split("/")[-1].removesuffix("_connected_built")
-        if "additive" in growthname:
-            order = "additive"
-        elif "subtractive" in growthname:
-            order = "subtractive"
-        met_name = "_".join(growthname.split("_")[:-1])
-        for trial in sorted(
-            [fold for fold in pathlib.Path(growth_f).iterdir() if "metric" in str(fold)]
-        ):
-            trialnum = str(trial).split("/")[-1].split("_")[-1].removesuffix(".json")
-            with open(trial, "r") as f:
-                met_dict = json.load(f)
-            auc_cov = auc_from_metrics_dict(
-                met_dict, "coverage", normalize_y=True, zero_yaxis=False
-            )
-            auc_dir = auc_from_metrics_dict(met_dict, "directness", normalize_y=False)
-            auc_reldir = auc_from_metrics_dict(
-                met_dict, "relative_directness", normalize_y=False
-            )
-            # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
-            toy_graph_aucs.append(
-                [met_name, order, trialnum, auc_cov, auc_dir, auc_reldir]
-            )
+        if "adaptive_coverage" in growthname:
+            pass
+        else:
+            if "additive" in growthname:
+                order = "additive"
+            elif "subtractive" in growthname:
+                order = "subtractive"
+            met_name = "_".join(growthname.split("_")[:-1])
+            for trial in sorted(
+                [
+                    fold
+                    for fold in pathlib.Path(growth_f).iterdir()
+                    if "metric" in str(fold)
+                ]
+            ):
+                trialnum = (
+                    str(trial).split("/")[-1].split("_")[-1].removesuffix(".json")
+                )
+                with open(trial, "r") as f:
+                    met_dict = json.load(f)
+                auc_cov = auc_from_metrics_dict(
+                    met_dict, "coverage", normalize_y=True, zero_yaxis=False
+                )
+                auc_dir = auc_from_metrics_dict(
+                    met_dict, "directness", normalize_y=False
+                )
+                auc_reldir = auc_from_metrics_dict(
+                    met_dict, "relative_directness", normalize_y=False
+                )
+                # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
+                toy_graph_aucs.append(
+                    [met_name, order, trialnum, auc_cov, auc_dir, auc_reldir]
+                )
     # Save everything as JSON with Pandas Dataframe
     df_growth = pd.DataFrame(
         toy_graph_aucs,
@@ -91,9 +102,9 @@ if __name__ == "__main__":
         hue="Metric optimized",
         hue_order=[
             "coverage",
-            "adaptive_coverage",
+            # "adaptive_coverage",
             "directness",
-            "relative_directness",
+            # "relative_directness",
             "betweenness",
             "closeness",
             "random",
@@ -101,9 +112,9 @@ if __name__ == "__main__":
         style="Order",
         markers=["P", "o"],
         style_order=["additive", "subtractive"],
-        palette=sns.color_palette("deep")[:7],
+        palette=sns.color_palette("deep")[:5],
         ax=ax,
-        s=50,
+        s=200,
         alpha=0.9,
     )
     for lh in g.legend_.legend_handles[:-2]:
@@ -125,16 +136,16 @@ if __name__ == "__main__":
         hue="Metric optimized",
         hue_order=[
             "coverage",
-            "adaptive_coverage",
+            # "adaptive_coverage",
             "directness",
-            "relative_directness",
+            # "relative_directness",
             "betweenness",
             "closeness",
             "random",
         ],
-        palette=sns.color_palette("deep")[:7],
+        palette=sns.color_palette("deep")[:5],
         ax=ax,
-        s=50,
+        s=200,
         alpha=0.9,
     )
     for lh in g.legend_.legend_handles[:-2]:

@@ -33,55 +33,55 @@ if __name__ == "__main__":
         "additive",
         "subtractive",
     ]:
-        for METRICNAME in ranking_func:
-            log.info(f"Start computation for metric {METRICNAME}")
-            foldername = folderoots + METRICNAME + "_" + ORDERNAME
-            if CONNECTED:
-                foldername += "_connected"
-            if BUILT:
-                foldername += "_built"
-            if not os.path.exists(foldername):
-                os.makedirs(foldername)
-            metrics_dict, order_growth = growth.order_ranked_network_growth(
-                G,
-                built=BUILT,
-                keep_connected=CONNECTED,
-                order=ORDERNAME,
-                ranking_func=ranking_func[METRICNAME],
-                save_metrics=True,
-                buff_size_metrics=BUFF_SIZE,
-            )
-            with open(foldername + "/order_growth.json", "w") as f:
-                json.dump(order_growth, f)
-            with open(foldername + "/metrics_growth.json", "w") as f:
-                json.dump(metrics_dict, f)
-            foldergrowth_buff = foldername + "/plots"
-            if not os.path.exists(foldergrowth_buff):
-                os.makedirs(foldergrowth_buff)
-            plot.plot_growth(
-                G,
-                order_growth,
-                foldergrowth_buff,
-                built=True,
-                color_built="firebrick",
-                color_added="steelblue",
-                color_newest="darkgreen",
-                node_size=8,
-                buffer=True,
-                plot_metrics=True,
-                growth_cov=metrics_dict["coverage"],
-                growth_xx=metrics_dict["xx"],
-                growth_dir=metrics_dict["directness"],
-                growth_reldir=metrics_dict["relative_directness"],
-            )
-            plot.make_growth_video(
-                foldergrowth_buff, foldergrowth_buff + "/growth_video.mp4", fps=3
-            )
+        # for METRICNAME in ranking_func:
+        #     log.info(f"Start computation for metric {METRICNAME}")
+        #     foldername = folderoots + METRICNAME + "_" + ORDERNAME
+        #     if CONNECTED:
+        #         foldername += "_connected"
+        #     if BUILT:
+        #         foldername += "_built"
+        #     if not os.path.exists(foldername):
+        #         os.makedirs(foldername)
+        #     metrics_dict, order_growth = growth.order_ranked_network_growth(
+        #         G,
+        #         built=BUILT,
+        #         keep_connected=CONNECTED,
+        #         order=ORDERNAME,
+        #         ranking_func=ranking_func[METRICNAME],
+        #         save_metrics=True,
+        #         buff_size_metrics=BUFF_SIZE,
+        #     )
+        #     with open(foldername + "/order_growth.json", "w") as f:
+        #         json.dump(order_growth, f)
+        #     with open(foldername + "/metrics_growth.json", "w") as f:
+        #         json.dump(metrics_dict, f)
+        #     foldergrowth_buff = foldername + "/plots"
+        #     if not os.path.exists(foldergrowth_buff):
+        #         os.makedirs(foldergrowth_buff)
+        #     plot.plot_growth(
+        #         G,
+        #         order_growth,
+        #         foldergrowth_buff,
+        #         built=True,
+        #         color_built="firebrick",
+        #         color_added="steelblue",
+        #         color_newest="darkgreen",
+        #         node_size=8,
+        #         buffer=True,
+        #         plot_metrics=True,
+        #         growth_cov=metrics_dict["coverage"],
+        #         growth_xx=metrics_dict["xx"],
+        #         growth_dir=metrics_dict["directness"],
+        #         growth_reldir=metrics_dict["relative_directness"],
+        #     )
+        #     plot.make_growth_video(
+        #         foldergrowth_buff, foldergrowth_buff + "/growth_video.mp4", fps=3
+        #     )
         for METRICNAME in [
-            "coverage",
-            "adaptive_coverage",
+            # "coverage",
+            # "adaptive_coverage",
             "directness",
-            "relative_directness",
+            # "relative_directness",
         ]:
             log.info(f"Start computation for metric {METRICNAME}")
             if METRICNAME == "coverage":
@@ -134,27 +134,27 @@ if __name__ == "__main__":
             plot.make_growth_video(
                 foldergrowth_buff, foldergrowth_buff + "/growth_video.mp4", fps=3
             )
-        log.info(f"Start random computation, order {ORDERNAME}")
-        for i in range(100):
-            log.info(f"Start trial {i}")
-            foldername = folderoots + "random_" + ORDERNAME
-            if CONNECTED:
-                foldername += "_connected"
-            if BUILT:
-                foldername += "_built"
-            if not os.path.exists(foldername):
-                os.makedirs(foldername)
-            metrics_dict, order_growth = growth.order_ranked_network_growth(
-                G,
-                built=BUILT,
-                keep_connected=CONNECTED,
-                order=ORDERNAME,
-                ranking_func=metrics.growth_random,
-                save_metrics=True,
-                buff_size_metrics=BUFF_SIZE,
-            )
-            with open(foldername + f"/order_growth_{i:02}.json", "w") as f:
-                json.dump(order_growth, f)
-            with open(foldername + f"/metrics_growth_{i:02}.json", "w") as f:
-                json.dump(metrics_dict, f)
+        # log.info(f"Start random computation, order {ORDERNAME}")
+        # for i in range(10):
+        #     log.info(f"Start trial {i}")
+        #     foldername = folderoots + "random_" + ORDERNAME
+        #     if CONNECTED:
+        #         foldername += "_connected"
+        #     if BUILT:
+        #         foldername += "_built"
+        #     if not os.path.exists(foldername):
+        #         os.makedirs(foldername)
+        #     metrics_dict, order_growth = growth.order_ranked_network_growth(
+        #         G,
+        #         built=BUILT,
+        #         keep_connected=CONNECTED,
+        #         order=ORDERNAME,
+        #         ranking_func=metrics.growth_random,
+        #         save_metrics=True,
+        #         buff_size_metrics=BUFF_SIZE,
+        #     )
+        #     with open(foldername + f"/order_growth_{i:02}.json", "w") as f:
+        #         json.dump(order_growth, f)
+        #     with open(foldername + f"/metrics_growth_{i:02}.json", "w") as f:
+        #         json.dump(metrics_dict, f)
     log.info("Finished !")
