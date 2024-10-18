@@ -3,8 +3,6 @@ Script to plot as a scatterplot the Area Under Curve for the Coverage versus the
 """
 
 import os
-import pathlib
-import json
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -31,70 +29,71 @@ def auc_from_metrics_dict(met_dict, met, **kwargs):
 
 
 if __name__ == "__main__":
-    folderoots = "./data/processed/plan_paris/ignored_growth/pruned_paris_multigraph/"
+    folderoots = "./data/processed/ignored_files/utg_grid_trials/"
     if not os.path.exists(folderoots + "plots/"):
         os.makedirs(folderoots + "plots/")
-    sns.set(font_scale=1.5, style="whitegrid")
+    sns.set_theme(font_scale=2.5, style="whitegrid")
     # Open for all toy graphs
-    toy_graph_aucs = []
-    # Open for all growth strategies for a toy graph
-    for growth_f in [
-        fold
-        for fold in pathlib.Path(folderoots).iterdir()
-        if not fold.is_file()
-        and "plot" not in str(fold)
-        and ".DS_Store" not in str(fold)
-    ]:
-        growthname = str(growth_f).split("/")[-1].removesuffix("_connected_built")
-        if "adaptive_coverage" in growthname:
-            pass
-        else:
-            if "additive" in growthname:
-                order = "additive"
-            elif "subtractive" in growthname:
-                order = "subtractive"
-            met_name = "_".join(growthname.split("_")[:-1])
-            for trial in sorted(
-                [
-                    fold
-                    for fold in pathlib.Path(growth_f).iterdir()
-                    if "metric" in str(fold)
-                ]
-            ):
-                trialnum = (
-                    str(trial).split("/")[-1].split("_")[-1].removesuffix(".json")
-                )
-                with open(trial, "r") as f:
-                    met_dict = json.load(f)
-                auc_cov = auc_from_metrics_dict(
-                    met_dict, "coverage", normalize_y=True, zero_yaxis=False
-                )
-                auc_dir = auc_from_metrics_dict(
-                    met_dict, "directness", normalize_y=False
-                )
-                auc_reldir = auc_from_metrics_dict(
-                    met_dict, "relative_directness", normalize_y=False
-                )
-                # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
-                toy_graph_aucs.append(
-                    [met_name, order, trialnum, auc_cov, auc_dir, auc_reldir]
-                )
-    # Save everything as JSON with Pandas Dataframe
-    df_growth = pd.DataFrame(
-        toy_graph_aucs,
-        columns=[
-            "Metric optimized",
-            "Order",
-            "Trial",
-            "AUC of Coverage",
-            "AUC of Directness",
-            "AUC of Relative Directness",
-        ],
-    )
-    df_growth.to_json(str(folderoots) + "/auc_table_growth.json")
+    # toy_graph_aucs = []
+    # # Open for all growth strategies for a toy graph
+    # for growth_f in [
+    #     fold
+    #     for fold in pathlib.Path(folderoots).iterdir()
+    #     if not fold.is_file()
+    #     and "plot" not in str(fold)
+    #     and ".DS_Store" not in str(fold)
+    # ]:
+    #     growthname = str(growth_f).split("/")[-1].removesuffix("_connected_built")
+    #     if "adaptive_coverage" in growthname:
+    #         pass
+    #     else:
+    #         if "additive" in growthname:
+    #             order = "additive"
+    #         elif "subtractive" in growthname:
+    #             order = "subtractive"
+    #         met_name = "_".join(growthname.split("_")[:-1])
+    #         for trial in sorted(
+    #             [
+    #                 fold
+    #                 for fold in pathlib.Path(growth_f).iterdir()
+    #                 if "metric" in str(fold)
+    #             ]
+    #         ):
+    #             trialnum = (
+    #                 str(trial).split("/")[-1].split("_")[-1].removesuffix(".json")
+    #             )
+    #             with open(trial, "r") as f:
+    #                 met_dict = json.load(f)
+    #             auc_cov = auc_from_metrics_dict(
+    #                 met_dict, "coverage", normalize_y=True, zero_yaxis=False
+    #             )
+    #             auc_dir = auc_from_metrics_dict(
+    #                 met_dict, "directness", normalize_y=False
+    #             )
+    #             auc_reldir = auc_from_metrics_dict(
+    #                 met_dict, "relative_directness", normalize_y=False
+    #             )
+    #             # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
+    #             toy_graph_aucs.append(
+    #                 [met_name, order, trialnum, auc_cov, auc_dir, auc_reldir]
+    #             )
+    # # Save everything as JSON with Pandas Dataframe
+    # df_growth = pd.DataFrame(
+    #     toy_graph_aucs,
+    #     columns=[
+    #         "Metric optimized",
+    #         "Order",
+    #         "Trial",
+    #         "AUC of Coverage",
+    #         "AUC of Directness",
+    #         "AUC of Relative Directness",
+    #     ],
+    # )
+    # df_growth.to_json(str(folderoots) + "/auc_table_growth.json")
     df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
-    fig, ax = plt.subplots(figsize=(16, 9))
-    ax.set_title("Growth strategies, AUC comparison")
+    cm = 1 / 2.54
+    fig, ax = plt.subplots(figsize=(47.08 * cm, 26.48 * cm))
+    # ax.set_title("Growth strategies, AUC comparison")
     g = sns.scatterplot(
         df_growth,
         x="AUC of Directness",
@@ -102,56 +101,58 @@ if __name__ == "__main__":
         hue="Metric optimized",
         hue_order=[
             "coverage",
-            # "adaptive_coverage",
+            "adaptive_coverage",
             "directness",
-            # "relative_directness",
+            "relative_directness",
             "betweenness",
             "closeness",
             "random",
+            "manual",
         ],
         style="Order",
         markers=["P", "o"],
         style_order=["additive", "subtractive"],
-        palette=sns.color_palette("deep")[:5],
+        palette=sns.color_palette("deep")[:8],
         ax=ax,
-        s=200,
+        s=400,
         alpha=0.9,
     )
-    for lh in g.legend_.legend_handles[:-2]:
-        lh.set_marker("o")
-    for lh in g.legend_.legend_handles:
-        lh.set_alpha(1)
+    # for lh in g.legend_.legend_handles[:-2]:
+    #     lh.set_marker("o")
+    # for lh in g.legend_.legend_handles:
+    #     lh.set_alpha(1)
     plt.tight_layout()
-    plt.savefig(str(folderoots) + "/plots/AUC_comparison_cov_dir_all.png", dpi=200)
+    plt.legend(loc="lower left")
+    plt.savefig(str(folderoots) + "/plots/AUC_comparison_cov_dir_all_comm.png", dpi=500)
     plt.close()
-    fig, ax = plt.subplots(figsize=(16, 9))
-    ax.set_title("Growth strategies, AUC comparison")
-    g = sns.scatterplot(
-        df_growth,
-        x="AUC of Directness",
-        y="AUC of Relative Directness",
-        style="Order",
-        markers=["P", "o"],
-        style_order=["additive", "subtractive"],
-        hue="Metric optimized",
-        hue_order=[
-            "coverage",
-            # "adaptive_coverage",
-            "directness",
-            # "relative_directness",
-            "betweenness",
-            "closeness",
-            "random",
-        ],
-        palette=sns.color_palette("deep")[:5],
-        ax=ax,
-        s=200,
-        alpha=0.9,
-    )
-    for lh in g.legend_.legend_handles[:-2]:
-        lh.set_marker("o")
-    for lh in g.legend_.legend_handles:
-        lh.set_alpha(1)
-    plt.tight_layout()
-    plt.savefig(str(folderoots) + "/plots/AUC_comparison_reldir_dir_all.png", dpi=200)
-    plt.close()
+    # fig, ax = plt.subplots(figsize=(16, 9))
+    # ax.set_title("Growth strategies, AUC comparison")
+    # g = sns.scatterplot(
+    #     df_growth,
+    #     x="AUC of Directness",
+    #     y="AUC of Relative Directness",
+    #     style="Order",
+    #     markers=["P", "o"],
+    #     style_order=["additive", "subtractive"],
+    #     hue="Metric optimized",
+    #     hue_order=[
+    #         "coverage",
+    #         "adaptive_coverage",
+    #         "directness",
+    #         "relative_directness",
+    #         "betweenness",
+    #         "closeness",
+    #         "random",
+    #     ],
+    #     palette=sns.color_palette("deep")[:5],
+    #     ax=ax,
+    #     s=200,
+    #     alpha=0.9,
+    # )
+    # for lh in g.legend_.legend_handles[:-2]:
+    #     lh.set_marker("o")
+    # for lh in g.legend_.legend_handles:
+    #     lh.set_alpha(1)
+    # plt.tight_layout()
+    # plt.savefig(str(folderoots) + "/plots/AUC_comparison_reldir_dir_all.png", dpi=200)
+    # plt.close()

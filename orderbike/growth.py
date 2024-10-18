@@ -411,7 +411,7 @@ def get_subtractive_invalid_edges(G, built=True):
     invalid_edges = [
         edge
         for edge in nx.bridges(G)
-        if not any(nx.degree(G, node) == 1 for node in edge)
+        if not any(nx.degree(G, node) == 1 for node in edge[:2])
     ]
     # If there are elected nodes there are built edges that we can't remove
     if built:
@@ -452,7 +452,7 @@ def get_additive_invalid_edges(G_actual, G_final):
     invalid_edges = [
         edge
         for edge in G_final.edges
-        if (not any(node in G_actual for node in edge)) or edge in G_actual.edges
+        if (not any(node in G_actual for node in edge[:2])) or edge in G_actual.edges
     ]
     # If already the final number of cc or will connect in the future give list of adjacent edge only
     if nx.number_connected_components(G_actual) >= nx.number_connected_components(
