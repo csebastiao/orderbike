@@ -23,6 +23,41 @@ logging.basicConfig(
 log = logging.getLogger()
 
 
+def get_auc(
+    xx,
+    yy,
+    normalize_x=True,
+    normalize_y=True,
+    zero_yaxis=True,
+    exp_discounting=True,
+    exp_gap=10,
+):
+    """Get area under the curve to compare the efficiency of a curve"""
+    if normalize_x:
+        xx = (np.array(xx) - np.min(xx)) / (np.max(xx) - np.min(xx))
+    if normalize_y:
+        if zero_yaxis:
+            min_y = 0
+        else:
+            min_y = np.min(yy)
+        yy = (np.array(yy) - min_y) / (np.max(yy) - min_y)
+    if exp_discounting:
+        max_yy = max(yy)
+        exp_disc = np.exp(-xx * np.log(exp_gap))
+        yy *= exp_disc
+        # Need to normalize by potential best curve to get AUC from 0 to 1
+        optimal_yy = np.array([yy[0]] + [max_yy] * (len(yy) - 1)) * exp_disc
+        return auc(xx, yy) / auc(xx, optimal_yy)
+    return auc(xx, yy)
+
+
+def auc_from_metrics_dict(met_dict, met, **kwargs):
+    """Get area under the curve for a metric in a dictionary made by growth.compute_metrics"""
+    xx = met_dict["xx"]
+    yy = met_dict[met]
+    return get_auc(xx, yy, **kwargs)
+
+
 def dist(v1, v2):
     """
     From https://github.com/mszell/bikenwgrowth
@@ -58,17 +93,6 @@ def clean_isolated_node(G):
 def get_node_dict(G):
     """Get translation of indexed value to node value in G"""
     return {idx: node for idx, node in enumerate(G.nodes)}
-
-
-def get_area_under_curve(curve, xx=None, normalize_y=False, normalize_x=False):
-    """Get area under the curve to compare the efficiency of a curve"""
-    if xx is None:
-        xx = range(len(curve))
-    if normalize_y is True:
-        curve = (curve - np.min(curve)) / (np.max(curve) - np.min(curve))
-    if normalize_x is True:
-        return (auc(xx, curve) - np.min(xx)) / (np.max(xx) - np.min(xx))
-    return auc(xx, curve)
 
 
 # TODO give level of bikeability instead of boolean as an option
