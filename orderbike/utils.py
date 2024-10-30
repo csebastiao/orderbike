@@ -41,14 +41,14 @@ def get_auc(
         else:
             min_y = np.min(yy)
         yy = (np.array(yy) - min_y) / (np.max(yy) - min_y)
+    # Need to normalize by potential best curve to get AUC from 0 to 1
+    max_yy = max(yy)
+    optimal_yy = np.array([yy[0]] + [max_yy] * (len(yy) - 2) + [yy[-1]])
     if exp_discounting:
-        max_yy = max(yy)
         exp_disc = np.exp(-xx * np.log(exp_gap))
         yy *= exp_disc
-        # Need to normalize by potential best curve to get AUC from 0 to 1
-        optimal_yy = np.array([yy[0]] + [max_yy] * (len(yy) - 1)) * exp_disc
-        return auc(xx, yy) / auc(xx, optimal_yy)
-    return auc(xx, yy)
+        optimal_yy *= exp_disc
+    return auc(xx, yy) / auc(xx, optimal_yy)
 
 
 def auc_from_metrics_dict(met_dict, met, **kwargs):
