@@ -70,7 +70,6 @@ if __name__ == "__main__":
                         normalize_y=False,
                         exp_discounting=exp_disc,
                     )
-                    # Add to the table the length of lcc when using true graph with built part, and don't start with zero_yaxis=True for AUC
                     toy_graph_aucs.append(
                         [met_name, order, trialnum, auc_cov, auc_dir, auc_reldir]
                     )
@@ -94,25 +93,27 @@ if __name__ == "__main__":
             df_growth = pd.read_json(savename)
             fig, ax = plt.subplots(figsize=(16, 9))
             ax.set_title("Growth strategies, AUC comparison")
+            hue_order = [
+                "coverage",
+                "adaptive_coverage",
+                "directness",
+                "relative_directness",
+                "betweenness",
+                "closeness",
+                "random",
+            ]
+            if graphname == "utg_grid_trials":
+                hue_order.append("manual")
             g = sns.scatterplot(
                 df_growth,
                 x="AUC of Directness",
                 y="AUC of Coverage",
                 hue="Metric optimized",
-                hue_order=[
-                    "coverage",
-                    "adaptive_coverage",
-                    "directness",
-                    "relative_directness",
-                    "betweenness",
-                    "closeness",
-                    "random",
-                    "manual",
-                ],
+                hue_order=hue_order,
                 style="Order",
                 markers=["P", "o"],
                 style_order=["additive", "subtractive"],
-                palette=sns.color_palette("deep")[:8],
+                palette=sns.color_palette("deep")[: len(hue_order)],
                 ax=ax,
                 s=50,
                 alpha=0.9,
@@ -138,17 +139,8 @@ if __name__ == "__main__":
                 markers=["P", "o"],
                 style_order=["additive", "subtractive"],
                 hue="Metric optimized",
-                hue_order=[
-                    "coverage",
-                    "adaptive_coverage",
-                    "directness",
-                    "relative_directness",
-                    "betweenness",
-                    "closeness",
-                    "random",
-                    "manual",
-                ],
-                palette=sns.color_palette("deep")[:8],
+                hue_order=hue_order,
+                palette=sns.color_palette("deep")[: len(hue_order)],
                 ax=ax,
                 s=50,
                 alpha=0.9,
