@@ -9,7 +9,7 @@ from utg import utils
 from orderbike import plot
 
 if __name__ == "__main__":
-    folderoots = "./data/processed/ignored_files/utg_milan_bikenet/"
+    folderoots = "./data/processed/ignored_files/paper/radio_concentric"
     G = utils.load_graph(folderoots + "/graph.graphml")
     df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
     plot_growth_folder = folderoots + "/plot_selected_growth"

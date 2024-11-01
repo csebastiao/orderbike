@@ -26,10 +26,10 @@ if __name__ == "__main__":
     # graph_list["grid_with_diagonal"] = create_graph.create_grid_graph(rows=10, cols=10, width=100, diagonal=False)
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    NUM_TRIAL = 50
+    NUM_TRIAL = 25
     NUM_S_TRIAL = 5
-    NUM_RAND_TRIAL = 1000
-    PAD = max(len(str(NUM_RAND_TRIAL)), len(str(NUM_RAND_TRIAL)))
+    NUM_RAND_TRIAL = 150
+    PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))
     for graph_name, G in graph_list.items():
         log.info(f"Start graph {graph_name}")
         folderoots = f"./data/processed/ignored_files/paper/{graph_name}/"
@@ -44,7 +44,7 @@ if __name__ == "__main__":
             filepath=folderoots + "picture.png",
         )
         for ORDERNAME in [
-            "additive",
+            # "additive",
             "subtractive",
         ]:
             for METRICNAME in [

@@ -13,12 +13,9 @@ from orderbike.utils import auc_from_metrics_dict
 
 if __name__ == "__main__":
     for graphname in [
-        "utg_grid_trials",
-        "utg_radio_concentric_trials",
-        "utg_three_bridges_trials",
-        "utg_diagonal_grid_trials",
+        "radio_concentric",
     ]:
-        folderoots = f"./data/processed/ignored_files/{graphname}/"
+        folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         if not os.path.exists(folderoots + "plots/"):
             os.makedirs(folderoots + "plots/")
         sns.set_theme(style="whitegrid")
