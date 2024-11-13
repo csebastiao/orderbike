@@ -30,21 +30,18 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
-        # "grid",
+        "grid",
         "radio_concentric",
         "grid_with_diagonal",
         "three_bridges",
     ]:
-        num = 7
-        if graphname == "grid":
-            num += 1
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         if not os.path.exists(folderoots + "plots/"):
             os.makedirs(folderoots + "plots/")
         savename = str(folderoots) + "/auc_table_growth.json"
         df_growth = pd.read_json(savename)
         trial_dict = {}
-        for met in plot_params["order"][:num]:
+        for met in plot_params["order"][:7]:
             mask = (df_growth["Metric optimized"] == met) & (
                 df_growth["Order"] == "additive"
             )
@@ -66,7 +63,7 @@ if __name__ == "__main__":
             else:
                 yy = "directness"
                 ax.set_ylabel("Directness")
-            for ids, met in enumerate(plot_params["order"][:num]):
+            for ids, met in enumerate(plot_params["order"][:7]):
                 df = pd.read_json(
                     folderoots
                     + f"{met}_additive_connected/metrics_growth_{int(trial_dict[met]):0{PAD}}.json"
@@ -81,6 +78,7 @@ if __name__ == "__main__":
                     },
                 )
             ax.set_xlabel("Meters built ($m$)")
+            ax.set_axisbelow(True)
             plt.tight_layout()
             plt.legend()
             plt.savefig(folderoots + f"/plots/{yy}_lineplot_additive.png")

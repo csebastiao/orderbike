@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Plot the AUC in additive order of all strategies on the tested graphs.
 """

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Script to plot as a scatterplot the Area Under Curve for the Coverage versus the Area Under Curve for the Directness, for multiple trials for all strategies.
 """

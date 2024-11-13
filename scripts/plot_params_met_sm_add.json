@@ -1,0 +1,20 @@
+{
+    "order":["coverage", "adaptive_coverage", "directness", "relative_directness", "betweenness","closeness", "random"],
+    "label":["Best in Coverage", "Worst in Coverage", "Medoid", "Others"],
+    "color":["#0173b2", "#d55e00", "#029e73", "#949494"],
+    "alpha":[0.9, 0.9, 0.9, 0.5],
+    "linewidth": [2, 2, 2, 1],
+    "zorder": [1, 1, 2, 0],
+    "figsize":[16, 9],
+    "rcparams":{
+        "font.family":"Helvetica",
+        "axes.grid":"True",
+        "axes.spines.right": "False",
+        "axes.spines.top": "False",
+        "xtick.bottom": "False",
+        "ytick.left": "False",
+        "figure.frameon": "False",
+        "figure.dpi": 300,
+        "savefig.bbox": "tight"
+    }
+}
