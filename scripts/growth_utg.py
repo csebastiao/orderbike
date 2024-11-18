@@ -10,6 +10,23 @@ from utg import create_graph
 from utg import utils as utgut
 from orderbike import growth, metrics
 from orderbike.utils import log
+import pathlib
+
+
+def find_last_trial(folder):
+    """Return last trial number already computed"""
+    existing_trials = sorted(
+        [
+            str(x.stem)
+            for x in pathlib.Path(folder).glob("**/*")
+            if "metrics_growth" in str(x)
+        ]
+    )
+    trial = -1
+    if len(existing_trials) > 0:
+        trial = int(existing_trials[-1].split("_")[-1])
+    return trial
+
 
 if __name__ == "__main__":
     BUILT = False
@@ -21,14 +38,19 @@ if __name__ == "__main__":
     graph_list["radio_concentric"] = create_graph.create_concentric_graph(
         radial=10, zones=9, center=True, radius=100
     )
-    # graph_list["three_bridges"] = create_graph.create_bridge_graph(outrows=3, sscols=4, bridges=3, blength=300, block_side=100)
-    # graph_list["grid"] = create_graph.create_grid_graph(rows=10, cols=10, width=100, diagonal=False)
-    # graph_list["grid_with_diagonal"] = create_graph.create_grid_graph(rows=10, cols=10, width=100, diagonal=False)
+    graph_list["three_bridges"] = create_graph.create_bridge_graph(
+        outrows=3, sscols=4, bridges=3, blength=300, block_side=100
+    )
+    graph_list["grid"] = create_graph.create_grid_graph(
+        rows=10, cols=10, width=100, diagonal=False
+    )
+    graph_list["grid_with_diagonal"] = create_graph.create_grid_graph(
+        rows=10, cols=10, width=100, diagonal=False
+    )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
-    NUM_TRIAL = 25
-    NUM_S_TRIAL = 5
-    NUM_RAND_TRIAL = 150
+    NUM_TRIAL = 50
+    NUM_RAND_TRIAL = 1000
     PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))
     for graph_name, G in graph_list.items():
         log.info(f"Start graph {graph_name}")
@@ -44,7 +66,7 @@ if __name__ == "__main__":
             filepath=folderoots + "picture.png",
         )
         for ORDERNAME in [
-            # "additive",
+            "additive",
             "subtractive",
         ]:
             for METRICNAME in [
@@ -69,11 +91,7 @@ if __name__ == "__main__":
                     foldername += "_built"
                 if not os.path.exists(foldername):
                     os.makedirs(foldername)
-                if METRICNAME == "directness" and ORDERNAME == "additive":
-                    realtrial = NUM_S_TRIAL
-                else:
-                    realtrial = NUM_TRIAL
-                for i in range(realtrial):
+                for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
                     log.info(f"Start trial {i}")
                     metrics_dict, order_growth = growth.order_dynamic_network_growth(
                         G,
@@ -103,7 +121,7 @@ if __name__ == "__main__":
                     foldername += "_built"
                 if not os.path.exists(foldername):
                     os.makedirs(foldername)
-                for i in range(NUM_S_TRIAL):
+                for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
                     log.info(f"Start trial {i}")
                     metrics_dict, order_growth = growth.order_ranked_network_growth(
                         G,
@@ -121,15 +139,15 @@ if __name__ == "__main__":
                     ) as f:
                         json.dump(metrics_dict, f)
             log.info(f"Start random computation, order {ORDERNAME}")
-            for i in range(NUM_RAND_TRIAL):
+            foldername = folderoots + "random_" + ORDERNAME
+            if CONNECTED:
+                foldername += "_connected"
+            if BUILT:
+                foldername += "_built"
+            if not os.path.exists(foldername):
+                os.makedirs(foldername)
+            for i in range(find_last_trial(foldername) + 1, NUM_RAND_TRIAL):
                 log.info(f"Start trial {i}")
-                foldername = folderoots + "random_" + ORDERNAME
-                if CONNECTED:
-                    foldername += "_connected"
-                if BUILT:
-                    foldername += "_built"
-                if not os.path.exists(foldername):
-                    os.makedirs(foldername)
                 metrics_dict, order_growth = growth.order_ranked_network_growth(
                     G,
                     built=BUILT,

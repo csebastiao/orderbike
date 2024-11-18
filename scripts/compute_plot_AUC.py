@@ -15,6 +15,9 @@ from orderbike.utils import auc_from_metrics_dict
 if __name__ == "__main__":
     for graphname in [
         "radio_concentric",
+        "grid",
+        "grid_with_diagonal",
+        "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         if not os.path.exists(folderoots + "plots/"):
