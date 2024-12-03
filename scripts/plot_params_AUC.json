@@ -11,10 +11,15 @@
         "axes.grid":"True",
         "axes.spines.right": "False",
         "axes.spines.top": "False",
-        "xtick.bottom": "False",
-        "ytick.left": "False",
+        "axes.axisbelow": "True",
+        "grid.color": "D8D8D8",
+        "xtick.bottom": "True",
+        "ytick.left": "True",
         "figure.frameon": "False",
         "figure.dpi": 300,
-        "savefig.bbox": "tight"
+        "savefig.bbox": "tight",
+        "legend.loc": "lower left",
+        "legend.edgecolor": "black",
+        "legend.facecolor": "F7F7F7"
     }
 }

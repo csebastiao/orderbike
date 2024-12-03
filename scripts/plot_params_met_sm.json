@@ -8,13 +8,15 @@
     "figsize":[16, 9],
     "rcparams":{
         "font.family":"Helvetica",
-        "axes.grid":"True",
+        "axes.grid":"False",
         "axes.spines.right": "False",
         "axes.spines.top": "False",
-        "xtick.bottom": "False",
-        "ytick.left": "False",
+        "xtick.bottom": "True",
+        "ytick.left": "True",
         "figure.frameon": "False",
         "figure.dpi": 300,
-        "savefig.bbox": "tight"
+        "savefig.bbox": "tight",
+        "legend.edgecolor": "black",
+        "legend.facecolor": "F7F7F7"
     }
 }
