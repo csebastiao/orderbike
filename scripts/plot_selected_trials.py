@@ -9,7 +9,7 @@ from utg import utils
 from orderbike import plot
 
 if __name__ == "__main__":
-    folderoots = "./data/processed/ignored_files/paper/radio_concentric"
+    folderoots = "./data/processed/ignored_files/paper/grid"
     G = utils.load_graph(folderoots + "/graph.graphml")
     df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
     plot_growth_folder = folderoots + "/plot_selected_growth"
@@ -21,12 +21,6 @@ if __name__ == "__main__":
     for order in ["additive", "subtractive"]:
         for metric in [
             "random",
-            "coverage",
-            "betweenness",
-            "closeness",
-            "directness",
-            "relative_directness",
-            "adaptive_coverage",
         ]:
             oc = df_growth["Order"] == order
             mc = df_growth["Metric optimized"] == metric
