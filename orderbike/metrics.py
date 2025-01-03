@@ -152,9 +152,7 @@ def upfunc_growth_adaptive_coverage(
     new_area = shapely.ops.unary_union(list(geom.values())).area
     if order == "subtractive":
         if buff_size < max_buff:
-            change = (actual_area - new_area) / (
-                step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
-            )
+            change = (actual_area - new_area) / (step_geom.area - np.pi * buff_size**2)
             if change > threshold_max_change:
                 log.debug(
                     f"Change is {change}, higher than threshold {threshold_max_change}, increasing buffer size."
@@ -164,15 +162,13 @@ def upfunc_growth_adaptive_coverage(
                     buff_size = max_buff
                 log.debug(f"New buffer size is {buff_size}.")
                 geom = {
-                    edge: G.edges[edge]["geometry"].buffer(buff_size)
-                    for edge in G.edges
+                    edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
+                    for edge in G_actual.edges
                 }
                 new_area = shapely.ops.unary_union(list(geom.values())).area
     elif order == "additive":
         if buff_size > min_buff:
-            change = (new_area - actual_area) / (
-                step_geom.area - np.pi * G.edges[step]["geometry"].length ** 2
-            )
+            change = (new_area - actual_area) / (step_geom.area - np.pi * buff_size**2)
             if change < threshold_min_change:
                 log.debug(
                     f"Change is {change}, lower than threshold {threshold_min_change}, reducing buffer size."
@@ -182,8 +178,8 @@ def upfunc_growth_adaptive_coverage(
                     buff_size = min_buff
                 log.debug(f"New buffer size is {buff_size}.")
                 geom = {
-                    edge: G.edges[edge]["geometry"].buffer(buff_size)
-                    for edge in G.edges
+                    edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
+                    for edge in G_actual.edges
                 }
                 new_area = shapely.ops.unary_union(list(geom.values())).area
     return {

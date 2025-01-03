@@ -1,10 +1,11 @@
 {
     "order":["coverage", "adaptive_coverage", "directness", "relative_directness", "betweenness","closeness", "random", "manual"],
     "label":["Coverage", "Adaptive coverage", "Directness", "Relative directness", "Betweenness","Closeness", "Random", "Manual"],
-    "color":["#0173b2", "#56b4e9", "#d55e00", "#de8f05", "#029e73", "#cc78bc", "#949494", "black"],
-    "marker":["^", "v", "s", "D", "h", "p", "o", "*"],
+    "color":["#0173b2", "#56b4e9", "#d55e00", "#de8f05", "#029e73", "#cc78bc", "#949494", "white"],
+    "edgecolor":["Face", "Face", "Face", "Face", "Face", "Face", "Face", "black"],
+    "marker":["^", "v", "s", "D", "h", "p", "o", "o"],
     "alpha":[0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.5, 1],
-    "s":[60, 60, 60, 50, 70, 70, 40, 150],
+    "s":[60, 60, 60, 50, 70, 70, 40, 250],
     "figsize":[16, 9],
     "rcparams":{
         "font.family":"Futura",

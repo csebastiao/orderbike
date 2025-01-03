@@ -17,9 +17,9 @@ if __name__ == "__main__":
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
         "grid",
-        "radio_concentric",
-        "grid_with_diagonal",
-        "three_bridges",
+        # "radio_concentric",
+        # "grid_with_diagonal",
+        # "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/AUC"
@@ -78,6 +78,6 @@ if __name__ == "__main__":
                         ax.set_xlim([round(dirmin - 0.05, 1), round(dirmax + 0.05, 1)])
                         ax.set_ylim([round(covmin - 0.05, 1), round(covmax + 0.05, 1)])
                     plt.legend()
-                    savename += ".png"
+                    savename += "_hc.png"
                     plt.savefig(savename)
                     plt.close()
