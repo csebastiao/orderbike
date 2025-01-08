@@ -18,13 +18,6 @@ def average_x(df):
     return arr
 
 
-def std_x(df):
-    arr = []
-    for val in sorted(set(df["xx"].values)):
-        arr.append(df[df["xx"] == val].std())
-    return arr
-
-
 if __name__ == "__main__":
     mapping = {0: "C", 1: "H", 2: "D"}
     PAD = 3
@@ -39,10 +32,8 @@ if __name__ == "__main__":
     dirmin = 1
     dirmax = 0
     avg = {}
-    std = {}
     for met in plot_params["order"][:7]:
         avg[met] = {}
-        std[met] = {}
         df_concat = pd.DataFrame()
         for order in ["additive", "subtractive"]:
             for trial in [
@@ -59,8 +50,6 @@ if __name__ == "__main__":
                 if dirmax_temp > dirmax:
                     dirmax = dirmax_temp
             avg[met][order] = pd.DataFrame(average_x(df_concat))
-            if std:
-                std[met][order] = pd.DataFrame(std_x(df_concat))
     xmax = df["xx"].max() * 1.1
     dirmin = round(dirmin - 0.05, 1)
     dirmax = round(dirmax + 0.05, 1)
@@ -71,17 +60,6 @@ if __name__ == "__main__":
         fig, axs = plt.subplots(
             nrows=10, ncols=2, figsize=plot_params["figsize"], sharex="col"
         )
-        for met in plot_params["order"][:7]:
-            mask = (df_growth["Metric optimized"] == met) & (
-                df_growth["Order"] == order
-            )
-            arr = [
-                val
-                for val in zip(
-                    df_growth[mask]["AUC of Coverage"].values,
-                    df_growth[mask]["AUC of Directness"].values,
-                )
-            ]
         for auc in ["AUC of Coverage", "AUC of Directness"]:
             for num, met in enumerate(plot_params["order"][:7]):
                 if auc == "AUC of Coverage":

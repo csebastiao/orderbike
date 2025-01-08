@@ -12,9 +12,9 @@ from orderbike.utils import auc_from_metrics_dict
 
 if __name__ == "__main__":
     for graphname in [
-        "grid",
+        # "grid",
         # "radio_concentric",
-        # "grid_with_diagonal",
+        "grid_with_diagonal",
         # "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"

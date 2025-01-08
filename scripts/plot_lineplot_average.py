@@ -25,10 +25,10 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
-        "grid",
-        "radio_concentric",
+        # "grid",
+        # "radio_concentric",
         "grid_with_diagonal",
-        "three_bridges",
+        # "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/lineplot"
