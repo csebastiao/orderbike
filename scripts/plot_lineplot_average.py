@@ -25,9 +25,9 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
-        # "grid",
+        "grid",
         # "radio_concentric",
-        "grid_with_diagonal",
+        # "grid_with_diagonal",
         # "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                             if key not in ["dpi", "figsize", "rcparams", "order"]
                         },
                     )
-                ax.set_xlabel("Kilometers built ($km$)")
+                ax.set_xlabel("Built length ($km$)")
                 ax.set_axisbelow(True)
                 plt.tight_layout()
                 plt.legend()

@@ -9,6 +9,7 @@ import json
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from pathlib import Path
+from orderbike.utils import get_auc
 
 
 def average_x(df):
@@ -32,8 +33,12 @@ if __name__ == "__main__":
     dirmin = 1
     dirmax = 0
     avg = {}
+    auc_cov_avg = {}
+    auc_dir_avg = {}
     for met in plot_params["order"][:7]:
         avg[met] = {}
+        auc_cov_avg[met] = {}
+        auc_dir_avg[met] = {}
         df_concat = pd.DataFrame()
         for order in ["additive", "subtractive"]:
             for trial in [
@@ -50,7 +55,19 @@ if __name__ == "__main__":
                 if dirmax_temp > dirmax:
                     dirmax = dirmax_temp
             avg[met][order] = pd.DataFrame(average_x(df_concat))
-    xmax = df["xx"].max() * 1.1
+            auc_cov_avg[met][order] = get_auc(
+                df["xx"],
+                avg[met][order]["coverage"].values,
+                zero_yaxis=False,
+                exp_discounting=False,
+            )
+            auc_dir_avg[met][order] = get_auc(
+                df["xx"],
+                avg[met][order]["directness"].values,
+                normalize_y=False,
+                exp_discounting=False,
+            )
+    xmax = df["xx"].max()
     dirmin = round(dirmin - 0.05, 1)
     dirmax = round(dirmax + 0.05, 1)
     savename = str(folderoots) + "/auc_table_growth.json"
@@ -60,17 +77,31 @@ if __name__ == "__main__":
         fig, axs = plt.subplots(
             nrows=10, ncols=2, figsize=plot_params["figsize"], sharex="col"
         )
+        axs[0][0].set_ylabel("Coverage ($km^2$)", rotation=45, y=1)
+        axs[0][1].set_ylabel("Directness", rotation=45, y=1)
         for auc in ["AUC of Coverage", "AUC of Directness"]:
             for num, met in enumerate(plot_params["order"][:7]):
                 if auc == "AUC of Coverage":
                     yy = "coverage"
                     ax = axs[num][0]
-                    ax.set_ylabel("Coverage ($km^2$)", fontsize=8)
+                    ax.set_ylim([0, 1.5])
+                    ax.set_yticks([0.0, 0.5, 1, 1.5])
                     plt.text(
-                        0.85,
-                        0.25,
+                        0.95,
+                        0.1,
                         plot_params["label_met"][num],
                         ha="right",
+                        va="bottom",
+                        fontsize="medium",
+                        transform=ax.transAxes,
+                        color=plot_params["color_label"][num],
+                        weight="extra bold",
+                    )
+                    plt.text(
+                        0.3,
+                        0.1,
+                        round(auc_cov_avg[met][order], 3),
+                        ha="left",
                         va="bottom",
                         fontsize="medium",
                         transform=ax.transAxes,
@@ -81,9 +112,21 @@ if __name__ == "__main__":
                 else:
                     yy = "directness"
                     ax = axs[num][1]
-                    ax.set_ylabel("Directness")
                     ax.set_ylim([dirmin, dirmax])
+                    ax.set_yticks([0.4, 0.6, 0.8, 1])
+                    plt.text(
+                        0.3,
+                        0.1,
+                        round(auc_dir_avg[met][order], 3),
+                        ha="left",
+                        va="bottom",
+                        fontsize="medium",
+                        transform=ax.transAxes,
+                        color=plot_params["color_label"][num],
+                        weight="extra bold",
+                    )
                     ratio = 1
+                ax.set_xlim([0, xmax / 10**3])
                 for trial in [
                     x
                     for x in Path(folderoots + f"{met}_{order}_connected/").glob("**/*")
@@ -125,16 +168,43 @@ if __name__ == "__main__":
                     },
                 )
         for i in range(3):
+            df = pd.read_json(
+                folderoots + f"manual_additive_connected/metrics_growth_00{i}.json"
+            )
+            auc_cov = get_auc(
+                df["xx"],
+                df["coverage"].values,
+                zero_yaxis=False,
+                exp_discounting=False,
+            )
+            auc_dir = get_auc(
+                df["xx"],
+                df["directness"].values,
+                normalize_y=False,
+                exp_discounting=False,
+            )
             for idx, auc in enumerate(["AUC of Coverage", "AUC of Directness"]):
                 if auc == "AUC of Coverage":
                     yy = "coverage"
                     ax = axs[7 + i][0]
-                    ax.set_ylabel("Coverage ($km^2$)", fontsize=8)
+                    ax.set_ylim([0, 1.5])
+                    ax.set_yticks([0.0, 0.5, 1, 1.5])
                     plt.text(
-                        0.85,
-                        0.25,
+                        0.95,
+                        0.1,
                         f"Manual order {mapping[i]}",
                         ha="right",
+                        va="bottom",
+                        fontsize="medium",
+                        transform=ax.transAxes,
+                        color="black",
+                        weight="extra bold",
+                    )
+                    plt.text(
+                        0.3,
+                        0.1,
+                        round(auc_cov, 3),
+                        ha="left",
                         va="bottom",
                         fontsize="medium",
                         transform=ax.transAxes,
@@ -145,12 +215,21 @@ if __name__ == "__main__":
                 else:
                     yy = "directness"
                     ax = axs[7 + i][1]
-                    ax.set_ylabel("Directness")
                     ax.set_ylim([dirmin, dirmax])
+                    ax.set_yticks([0.4, 0.6, 0.8, 1])
+                    plt.text(
+                        0.3,
+                        0.1,
+                        round(auc_dir, 3),
+                        ha="left",
+                        va="bottom",
+                        fontsize="medium",
+                        transform=ax.transAxes,
+                        color="black",
+                        weight="extra bold",
+                    )
                     ratio = 1
-                df = pd.read_json(
-                    folderoots + f"manual_additive_connected/metrics_growth_00{i}.json"
-                )
+                ax.set_xlim([0, xmax / 10**3])
                 ax.plot(
                     df["xx"] / 10**3,
                     df[yy] / ratio,
@@ -167,11 +246,11 @@ if __name__ == "__main__":
                         ]
                     },
                 )
-        axs[9][0].set_xlabel("Kilometers built ($km$)")
-        axs[9][1].set_xlabel("Kilometers built ($km$)")
+        axs[9][0].set_xlabel("Built length ($km$)")
+        axs[9][1].set_xlabel("Built length ($km$)")
         axs[9][0].set_xlim([0, xmax / 10**3])
         axs[9][1].set_xlim([0, xmax / 10**3])
-        axs[0][1].legend()
+        axs[0][1].legend(loc="lower right")
         savename = folderplot + f"/sm_all_{order}_average_wmanual"
         plt.savefig(savename + ".png")
         plt.close()

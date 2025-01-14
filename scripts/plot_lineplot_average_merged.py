@@ -4,23 +4,18 @@ Plot the metrics in additive order of all strategies on the tested graphs, chosi
 """
 
 import os
+from pathlib import Path
 import pandas as pd
 import json
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-import numpy as np
 
 
-def find_medoid(array):
-    "Find the medoid of a list of points in 2D. Array of shape [[x1, y1], [x2, y2], ..., [xn, yn]]."
-    array = np.array(array)
-    dist_mat = np.array(
-        [
-            [np.linalg.norm([array[col] - array[row]]) for col in range(len(array))]
-            for row in range(len(array))
-        ]
-    )
-    return np.argmin(dist_mat.sum(axis=0))
+def average_x(df):
+    arr = []
+    for val in sorted(set(df["xx"].values)):
+        arr.append(df[df["xx"] == val].mean())
+    return arr
 
 
 if __name__ == "__main__":
@@ -31,9 +26,9 @@ if __name__ == "__main__":
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
         "grid",
-        "radio_concentric",
-        "grid_with_diagonal",
-        "three_bridges",
+        # "radio_concentric",
+        # "grid_with_diagonal",
+        # "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/lineplot"
@@ -41,10 +36,23 @@ if __name__ == "__main__":
             os.makedirs(folderplot)
         savename = str(folderoots) + "/auc_table_growth.json"
         df_growth = pd.read_json(savename)
-        for order in [
-            "additive",
-            "subtractive",
-        ]:
+        avg = {}
+        for met in plot_params["order"][:7]:
+            avg[met] = {}
+            df_concat = pd.DataFrame()
+            for order in ["additive", "subtractive"]:
+                for trial in [
+                    x
+                    for x in Path(folderoots + f"{met}_{order}_connected/").glob("**/*")
+                    if "metrics_growth" in str(x)
+                ]:
+                    df = pd.read_json(trial)
+                    df_concat = pd.concat([df_concat, df])
+                avg[met][order] = pd.DataFrame(average_x(df_concat))
+        for order in ["additive", "subtractive"]:
+            fig, axs = plt.subplots(
+                2, 1, figsize=(plot_params["figsize"][0], plot_params["figsize"][1] * 2)
+            )
             trial_dict = {}
             for met in plot_params["order"][:7]:
                 mask = (df_growth["Metric optimized"] == met) & (
@@ -57,24 +65,23 @@ if __name__ == "__main__":
                         df_growth[mask]["AUC of Directness"].values,
                     )
                 ]
-                medoid = find_medoid(arr)
-                trial_dict[met] = medoid
             for auc in ["AUC of Coverage", "AUC of Directness"]:
-                fig, ax = plt.subplots(figsize=plot_params["figsize"])
                 idx = 0
                 if auc == "AUC of Coverage":
+                    ax = axs[0]
                     yy = "coverage"
                     ax.set_ylabel("Coverage ($km^2$)")
+                    ax.axes.xaxis.set_ticklabels([])
                     ratio = 10**6
                 else:
+                    ax = axs[1]
                     yy = "directness"
                     ax.set_ylabel("Directness")
                     ratio = 1
+                    ax.set_xlabel("Built length ($km$)")
+                ax.set_xlim([0, max(df["xx"]) / 10**3])
                 for ids, met in enumerate(plot_params["order"][:7]):
-                    df = pd.read_json(
-                        folderoots
-                        + f"{met}_{order}_connected/metrics_growth_{int(trial_dict[met]):0{PAD}}.json"
-                    )
+                    df = avg[met][order]
                     ax.plot(
                         df["xx"] / 10**3,
                         df[yy] / ratio,
@@ -84,9 +91,8 @@ if __name__ == "__main__":
                             if key not in ["dpi", "figsize", "rcparams", "order"]
                         },
                     )
-                ax.set_xlabel("Kilometers built ($km$)")
-                ax.set_axisbelow(True)
-                plt.tight_layout()
-                plt.legend()
-                plt.savefig(folderplot + f"/{yy}_lineplot_{order}_medoid.png")
-                plt.close()
+            axs[0].legend()
+            ax.set_axisbelow(True)
+            plt.tight_layout()
+            plt.savefig(folderplot + f"/lineplot_{order}_average_merged.png")
+            plt.close()

@@ -37,6 +37,7 @@ if __name__ == "__main__":
         dirmax = 0
         avg = {}
         for met in plot_params["order"][:7]:
+            # TODO average on both value and meters built
             avg[met] = {}
             df_concat = pd.DataFrame()
             for order in ["additive", "subtractive"]:

@@ -51,9 +51,11 @@ def order_ranked_network_growth(
             )
             log.debug(f"Step {i}: {len(valid_edges)} valid edges to choose from.")
             testing_ranking = absolute_ranking.copy()
+            sgn = 1
             # In subtractive order, choose the edge with the lowest ranking, in additive the highest
             if order == "subtractive":
                 testing_ranking.reverse()
+                sgn *= -1
             if ranking_func == metrics.growth_random:
                 for edge in testing_ranking:
                     if edge in valid_edges:
@@ -62,7 +64,7 @@ def order_ranked_network_growth(
                         break
             else:
                 valid_cases = [
-                    [edge, met]
+                    [edge, sgn * met]
                     for edge, met in testing_ranking
                     if edge
                     in _valid_edges(
@@ -75,7 +77,7 @@ def order_ranked_network_growth(
                 step_met = valid_mets[
                     [idx for idx, i in enumerate(valid_edges) if i == step][0]
                 ]
-                absolute_ranking.remove([step, step_met])
+                absolute_ranking.remove([step, sgn * step_met])
             log.debug(f"Step {i}: optimal edge chosen is {step}.")
             G_actual = _update_actual_graph(G, G_actual, step, order)
             order_growth.append(step)

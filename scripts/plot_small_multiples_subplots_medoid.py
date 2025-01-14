@@ -43,7 +43,10 @@ if __name__ == "__main__":
         dirmin = 1
         dirmax = 0
         for met in plot_params["order"][:7]:
-            for order in ["additive", "subtractive"]:
+            for order in [
+                "additive",
+                "subtractive",
+            ]:
                 for trial in [
                     x
                     for x in Path(folderoots + f"{met}_{order}_connected/").glob("**/*")
