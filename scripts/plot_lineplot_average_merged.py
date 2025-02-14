@@ -13,8 +13,8 @@ from matplotlib import pyplot as plt
 
 def average_x(df):
     arr = []
-    for val in sorted(set(df["xx"].values)):
-        arr.append(df[df["xx"] == val].mean())
+    for ind in set(df.index):
+        arr.append(df[df.index == ind].mean())
     return arr
 
 
@@ -25,10 +25,11 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
-        "grid",
+        # "grid",
         # "radio_concentric",
         # "grid_with_diagonal",
         # "three_bridges",
+        "grid_2",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/lineplot"
@@ -41,9 +42,15 @@ if __name__ == "__main__":
             avg[met] = {}
             df_concat = pd.DataFrame()
             for order in ["additive", "subtractive"]:
+                if graphname == "grid_2":
+                    add = "_built/"
+                else:
+                    add = "/"
                 for trial in [
                     x
-                    for x in Path(folderoots + f"{met}_{order}_connected/").glob("**/*")
+                    for x in Path(folderoots + f"{met}_{order}_connected" + add).glob(
+                        "**/*"
+                    )
                     if "metrics_growth" in str(x)
                 ]:
                     df = pd.read_json(trial)

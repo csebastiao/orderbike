@@ -17,6 +17,7 @@ if __name__ == "__main__":
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
         "grid",
+        "grid_2",
         "radio_concentric",
         "grid_with_diagonal",
         "three_bridges",
@@ -36,7 +37,7 @@ if __name__ == "__main__":
                 "subtractive",
             ]:
                 num = 7
-                if graphname == "grid":
+                if graphname == "grid" or graphname == "grid_2":
                     num += 1
                     if order == "subtractive":
                         df_growth.loc[

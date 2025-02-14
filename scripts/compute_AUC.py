@@ -3,7 +3,7 @@
 Script to compute the Area Under the Curve of all metrics for all strategies on all graph.
 """
 
-import os
+
 import pandas as pd
 import pathlib
 import json
@@ -13,13 +13,12 @@ from orderbike.utils import auc_from_metrics_dict
 if __name__ == "__main__":
     for graphname in [
         "grid",
+        "grid_2",
         "radio_concentric",
         "grid_with_diagonal",
         "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
-        if not os.path.exists(folderoots + "plots/"):
-            os.makedirs(folderoots + "plots/")
         # With and without exponential discounting
         for exp_disc in [True, False]:
             # Open for all toy graphs
@@ -32,7 +31,12 @@ if __name__ == "__main__":
                 and "plot" not in str(fold)
                 and ".DS_Store" not in str(fold)
             ]:
-                growthname = str(growth_f).split("/")[-1].removesuffix("_connected")
+                if "built" in str(growth_f):
+                    growthname = (
+                        str(growth_f).split("/")[-1].removesuffix("_connected_built")
+                    )
+                else:
+                    growthname = str(growth_f).split("/")[-1].removesuffix("_connected")
                 if "additive" in growthname:
                     order = "additive"
                 elif "subtractive" in growthname:

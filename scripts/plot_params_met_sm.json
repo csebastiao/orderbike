@@ -18,7 +18,7 @@
         "figure.frameon": "False",
         "figure.dpi": 500,
         "savefig.bbox": "tight",
-        "savefig.pad_inches":  0.4,
+        "savefig.pad_inches":  0.1,
         "legend.edgecolor": "black",
         "legend.facecolor": "F7F7F7"
     }

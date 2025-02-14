@@ -197,7 +197,6 @@ def _show_save_close(fig, show=True, save=False, close=False, filepath=None, dpi
         plt.close()
 
 
-# TODO Add metric computation side by side
 def plot_growth(
     G,
     growth_steps,

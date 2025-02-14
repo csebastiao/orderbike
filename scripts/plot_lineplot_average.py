@@ -13,8 +13,8 @@ from matplotlib import pyplot as plt
 
 def average_x(df):
     arr = []
-    for val in sorted(set(df["xx"].values)):
-        arr.append(df[df["xx"] == val].mean())
+    for ind in set(df.index):
+        arr.append(df[df.index == ind].mean())
     return arr
 
 
@@ -26,9 +26,9 @@ if __name__ == "__main__":
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
         "grid",
-        # "radio_concentric",
-        # "grid_with_diagonal",
-        # "three_bridges",
+        "radio_concentric",
+        "grid_with_diagonal",
+        "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/lineplot"
