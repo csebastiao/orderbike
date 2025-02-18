@@ -22,8 +22,21 @@ if __name__ == "__main__":
             BUILT = False
         folderoots = f"./data/processed/ignored_files/paper/{graph}"
         G = utils.load_graph(folderoots + "/graph.graphml")
+        plot.plot_graph(
+            G,
+            filepath=folderoots + "/picture.png",
+            figsize=(10, 10),
+            buffer=False,
+            edge_color="black",
+            edge_linewidth=4,
+            node_color="black",
+            node_size=200,
+            show=False,
+            save=True,
+            close=True,
+        )
         df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
-        plot_growth_folder = folderoots + "/plot_selected_growth_2"
+        plot_growth_folder = folderoots + "/plot_selected_growth"
         if not os.path.exists(plot_growth_folder):
             os.makedirs(plot_growth_folder)
         selected_id = []
@@ -88,13 +101,14 @@ if __name__ == "__main__":
                 G,
                 order_growth,
                 foldergrowth,
+                figsize=(10, 10),
                 built=BUILT,
                 color_built="black",
                 color_added="black",
                 color_newest="black",
                 buffer=False,
                 plot_metrics=False,
-                edge_linewidth=2,
+                edge_linewidth=4,
                 node_color="black",
                 node_size=200,
             )

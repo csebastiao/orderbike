@@ -5,6 +5,7 @@ import geopandas as gpd
 from matplotlib import pyplot as plt
 from orderbike.metrics import directness
 import os
+import networkx as nx
 
 
 if __name__ == "__main__":
@@ -171,6 +172,7 @@ if __name__ == "__main__":
         [8, 18],
         [17, 18],
     ]
+    order_mincovmaxdir = [[val[0] + 40, val[1] + 40] for val in order_mincovmaxdir]
     order_mincovmaxdir = [tuple(val) for val in order_mincovmaxdir]
     order_deprecated_3 = [
         (33, 34),
@@ -219,28 +221,43 @@ if __name__ == "__main__":
     ]
     fig_mul, ax_mul = plt.subplots(figsize=(10, 10))
     for idx, G in enumerate(networks):
-        fig_ind, ax_ind = plot_graph(
-            G,
-            filepath=folderplot,
-            buffer=True,
-            buff_size=152,
-            buff_color="grey",
-            edge_color="black",
-            edge_linewidth=2,
-            node_color="black",
-            node_size=200,
-            show=False,
-            save=False,
-            close=False,
-        )
+        if names[idx] == "deprecated_1":
+            fig_ind, ax_ind = plt.subplots(figsize=(10, 10), layout="constrained")
+            ax_ind.set_xticks([])
+            ax_ind.set_yticks([])
+            geom_node = [
+                shapely.Point(G.nodes[n]["x"], G.nodes[n]["y"]) for n in G.nodes
+            ]
+            gdf_edge = gpd.GeoDataFrame(
+                geometry=list(nx.get_edge_attributes(G, "geometry").values())
+            )
+            buff = gpd.GeoSeries(gdf_edge.geometry.buffer(152).unary_union)
+            gdf_node = gpd.GeoDataFrame(index=[n for n in G.nodes], geometry=geom_node)
+            gdf_node["color"] = "black"
+            gdf_node.loc[[60, 69], "color"] = "red"
+            gdf_node.plot(
+                ax=ax_ind, color=gdf_node["color"].values, zorder=2, markersize=200
+            )
+            gdf_edge.plot(ax=ax_ind, color="black", linewidth=4, zorder=1)
+            buff.plot(ax=ax_ind, color="gray", alpha=0.2, zorder=0)
+        else:
+            fig_ind, ax_ind = plot_graph(
+                G,
+                filepath=folderplot,
+                figsize=(10, 10),
+                buffer=True,
+                buff_size=152,
+                buff_color="grey",
+                edge_color="black",
+                edge_linewidth=4,
+                node_color="black",
+                node_size=200,
+                show=False,
+                save=False,
+                close=False,
+            )
         ax_ind.set_xlim([-200, 1100])
         ax_ind.set_ylim([-200, 1100])
-        if names[idx] == "deprecated_1":
-            geom_node = [
-                shapely.Point(G.nodes[n]["x"], G.nodes[n]["y"]) for n in [60, 69]
-            ]
-            gdf_node = gpd.GeoDataFrame(index=[60, 69], geometry=geom_node)
-            gdf_node.plot(ax=ax_ind, color="red", zorder=3, markersize=200)
         fig_ind.savefig(folderplot + f"network_{names[idx]}.png")
         ax_mul.scatter(
             directness(G, 0),

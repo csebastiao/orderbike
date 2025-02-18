@@ -214,6 +214,7 @@ def plot_growth(
     growth_cov=None,
     growth_reldir=None,
     growth_xx=None,
+    figsize=(10, 10),
     **kwargs,
 ):
     """Plot the growth of the graph G in the order of the added edges from growth_steps."""
@@ -240,7 +241,7 @@ def plot_growth(
     else:
         bci = color_newest
     if plot_metrics:
-        fig, axs = plt.subplots(1, 4, figsize=(32, 18))
+        fig, axs = plt.subplots(1, 4, figsize=(figsize[0], figsize[1] * 4))
         ax = axs[0]
         for idx, met in enumerate([growth_cov, growth_dir, growth_reldir]):
             a = axs[idx + 1]
@@ -249,7 +250,7 @@ def plot_growth(
             a.set_ylim(min(met) - pad, max(met) + pad)
             sns.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a, marker="o")
     else:
-        fig, ax = _init_fig(ax=None, figsize=(16, 9))
+        fig, ax = _init_fig(ax=None, figsize=figsize)
     fig, ax = plot_graph(
         G_init,
         ax=ax,
@@ -289,10 +290,10 @@ def plot_growth(
             edge_color[old_edge] = color_added
         G_actual = G.edge_subgraph(actual_edges)
         if plot_metrics:
-            fig, axs = plt.subplots(1, 4, figsize=(32, 18))
+            fig, axs = plt.subplots(1, 4, figsize=(figsize[0], figsize[1] * 4))
             ax = axs[0]
         else:
-            fig, ax = _init_fig(ax=None, figsize=(16, 9))
+            fig, ax = _init_fig(ax=None, figsize=figsize)
         if buffer:
             fig, ax = plot_graph(
                 G_actual,

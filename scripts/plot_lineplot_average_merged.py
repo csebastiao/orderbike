@@ -25,11 +25,11 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for graphname in [
-        # "grid",
+        "grid",
         # "radio_concentric",
         # "grid_with_diagonal",
         # "three_bridges",
-        "grid_2",
+        # "grid_2",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/lineplot"
@@ -57,9 +57,8 @@ if __name__ == "__main__":
                     df_concat = pd.concat([df_concat, df])
                 avg[met][order] = pd.DataFrame(average_x(df_concat))
         for order in ["additive", "subtractive"]:
-            fig, axs = plt.subplots(
-                2, 1, figsize=(plot_params["figsize"][0], plot_params["figsize"][1] * 2)
-            )
+            fig, axs = plt.subplots(2, 1, figsize=plot_params["figsize"])
+            fig.subplots_adjust(hspace=0.2)
             trial_dict = {}
             for met in plot_params["order"][:7]:
                 mask = (df_growth["Metric optimized"] == met) & (
@@ -98,8 +97,8 @@ if __name__ == "__main__":
                             if key not in ["dpi", "figsize", "rcparams", "order"]
                         },
                     )
-            axs[0].legend()
+            axs[0].legend(prop={"size": plot_params["rcparams"]["font.size"] * 0.75})
             ax.set_axisbelow(True)
-            plt.tight_layout()
+            # plt.tight_layout()
             plt.savefig(folderplot + f"/lineplot_{order}_average_merged.png")
             plt.close()

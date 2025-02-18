@@ -8,6 +8,7 @@
     "zorder": [1, 0],
     "figsize":[8.27, 11.69],
     "rcparams":{
+        "font.size": 10,
         "font.family": "sans-serif",
         "font.sans-serif": "Arial",
         "axes.grid":"False",
@@ -16,7 +17,7 @@
         "xtick.bottom": "True",
         "ytick.left": "True",
         "figure.frameon": "False",
-        "figure.dpi": 500,
+        "figure.dpi": 400,
         "savefig.bbox": "tight",
         "savefig.pad_inches":  0.1,
         "legend.edgecolor": "black",

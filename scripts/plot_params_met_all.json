@@ -4,9 +4,10 @@
     "color":["#0173b2", "#56b4e9", "#d55e00", "#de8f05", "#029e73", "#cc78bc", "#949494"],
     "marker":["^", "v", "s", "D", "h", "p", "o", "*"],
     "alpha":[0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.5],
-    "markersize":[4, 4, 4, 3.5, 4, 4, 3],
-    "figsize":[16, 9],
+    "markersize":[3, 3, 1.5, 2, 2, 2, 2],
+    "figsize":[8.27, 11.69],
     "rcparams":{
+        "font.size":10,
         "font.family": "sans-serif",
         "font.sans-serif": "Arial",
         "axes.grid":"True",
@@ -17,7 +18,7 @@
         "xtick.bottom": "True",
         "ytick.left": "False",
         "figure.frameon": "False",
-        "figure.dpi": 500,
+        "figure.dpi": 400,
         "savefig.bbox": "tight",
         "legend.edgecolor": "black",
         "legend.facecolor": "F7F7F7"

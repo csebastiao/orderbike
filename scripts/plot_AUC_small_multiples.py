@@ -21,16 +21,22 @@ if __name__ == "__main__":
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for exp in [True, False]:
-        fig, axs = plt.subplots(4, 3, figsize=plot_params["figsize"])
-        # fig.subplots_adjust(hspace=0, wspace=0.5)
-        axs[0][1].set_title("Additive growth", fontsize=40)
-        axs[0][2].set_title("Subtractive growth", fontsize=40)
+        fig, axs = plt.subplots(
+            4, 3, figsize=plot_params["figsize"], width_ratios=[1, 3, 3]
+        )
+        fig.subplots_adjust(hspace=0.2, wspace=0.4)
+        axs[0][1].set_title(
+            "Additive growth", fontsize=plot_params["rcparams"]["font.size"] * 1.2
+        )
+        axs[0][2].set_title(
+            "Subtractive growth", fontsize=plot_params["rcparams"]["font.size"] * 1.2
+        )
         for idxg, graphname in enumerate(
             [
                 "grid",
-                "radio_concentric",
                 "grid_with_diagonal",
                 "three_bridges",
+                "radio_concentric",
             ]
         ):
             folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
@@ -39,9 +45,9 @@ if __name__ == "__main__":
                 G,
                 ax=axs[idxg][0],
                 edge_color="black",
-                edge_linewidth=2,
+                edge_linewidth=0.5,
                 node_color="black",
-                node_size=200,
+                node_size=1.5,
                 save=False,
                 show=False,
                 close=False,
@@ -90,10 +96,8 @@ if __name__ == "__main__":
                 #     color="black",
                 #     weight="extra bold",
                 # )
-                ax.axis("equal")
-                ax.set_xlim([0.4, 1])
-                ax.set_ylim([0.5, 0.9])
-        axs[0][2].legend()
+                ax.set(xlim=[0.4, 1.0], ylim=[0.5, 0.9])
+        axs[0][1].legend(prop={"size": plot_params["rcparams"]["font.size"] * 0.5})
         axs[0][1].set_ylabel("AUC of Coverage")
         axs[1][1].set_ylabel("AUC of Coverage")
         axs[2][1].set_ylabel("AUC of Coverage")

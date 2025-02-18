@@ -81,7 +81,9 @@ if __name__ == "__main__":
                     else:
                         ax.set_xlim([round(dirmin - 0.05, 1), round(dirmax + 0.05, 1)])
                         ax.set_ylim([round(covmin - 0.05, 1), round(covmax + 0.05, 1)])
-                    plt.legend()
+                    plt.legend(
+                        prop={"size": plot_params["rcparams"]["font.size"] * 0.75}
+                    )
                     # savename += "_hc.png"
                     plt.savefig(savename)
                     plt.close()
