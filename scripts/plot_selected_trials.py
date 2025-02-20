@@ -10,10 +10,10 @@ from orderbike import plot
 
 if __name__ == "__main__":
     for graph in [
-        "grid",
-        "grid_with_diagonal",
+        # "grid",
+        # "grid_with_diagonal",
         "radio_concentric",
-        "three_bridges",
+        # "three_bridges",
         # "grid_2",
     ]:
         if graph == "grid_2":
@@ -44,16 +44,16 @@ if __name__ == "__main__":
         PAD = 3
         for order in [
             "additive",
-            "subtractive",
+            # "subtractive",
         ]:
             for metric in [
-                "coverage",
+                # "coverage",
                 "directness",
-                "relative_directness",
-                "adaptive_coverage",
-                "betweenness",
-                "closeness",
-                "random",
+                # "relative_directness",
+                # "adaptive_coverage",
+                # "betweenness",
+                # "closeness",
+                # "random",
             ]:
                 oc = df_growth["Order"] == order
                 mc = df_growth["Metric optimized"] == metric

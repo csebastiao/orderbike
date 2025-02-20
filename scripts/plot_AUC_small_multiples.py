@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 #     color="black",
                 #     weight="extra bold",
                 # )
-                ax.set(xlim=[0.4, 1.0], ylim=[0.5, 0.9])
+                ax.set(xlim=[0.4, 1.0], ylim=[0.45, 0.9])
         axs[0][1].legend(prop={"size": plot_params["rcparams"]["font.size"] * 0.5})
         axs[0][1].set_ylabel("AUC of Coverage")
         axs[1][1].set_ylabel("AUC of Coverage")

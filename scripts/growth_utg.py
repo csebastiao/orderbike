@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Script to find growth order on the diagonal grid, with all growth strategies, dynamic and ranked, and random trials.
+Script to find growth order on the toy graphs, with all growth strategies, dynamic and ranked, and random trials.
 """
 
 import os
 import json
 
 from utg import create_graph
+from utg import utils as utgut
 from orderbike import growth, metrics
 from orderbike.utils import log
+from orderbike.plot import plot_graph
 import pathlib
 
 
@@ -34,18 +36,18 @@ if __name__ == "__main__":
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
     graph_list = {}
-    graph_list["grid"] = create_graph.create_grid_graph(
-        rows=10, cols=10, width=100, diagonal=False
-    )
+    # graph_list["grid"] = create_graph.create_grid_graph(
+    #     rows=10, cols=10, width=100, diagonal=False
+    # )
     graph_list["radio_concentric"] = create_graph.create_concentric_graph(
         radial=10, zones=9, center=True, radius=100
     )
-    graph_list["three_bridges"] = create_graph.create_bridge_graph(
-        outrows=3, sscols=4, bridges=3, blength=300, block_side=100
-    )
-    graph_list["grid_with_diagonal"] = create_graph.create_grid_graph(
-        rows=10, cols=10, width=100, diagonal=True
-    )
+    # graph_list["three_bridges"] = create_graph.create_bridge_graph(
+    #     outrows=3, sscols=4, bridges=3, blength=300, block_side=100
+    # )
+    # graph_list["grid_with_diagonal"] = create_graph.create_grid_graph(
+    #     rows=10, cols=10, width=100, diagonal=True
+    # )
     # Put slightly more than 150 to avoid rounding wizardry
     BUFF_SIZE = 152
     NUM_TRIAL = 50
@@ -56,60 +58,66 @@ if __name__ == "__main__":
         folderoots = f"./data/processed/ignored_files/paper/{graph_name}/"
         if not os.path.exists(folderoots):
             os.makedirs(folderoots)
-        # utgut.save_graph(G, folderoots + "graph.graphml")
-        # utgut.plot_graph(
-        #     G,
-        #     save=True,
-        #     show=False,
-        #     close=True,
-        #     filepath=folderoots + "picture.png",
-        # )
+        utgut.save_graph(G, folderoots + "graph.graphml")
+        plot_graph(
+            G,
+            filepath=folderoots + "/picture.png",
+            figsize=(10, 10),
+            buffer=False,
+            edge_color="black",
+            edge_linewidth=4,
+            node_color="black",
+            node_size=200,
+            show=False,
+            save=True,
+            close=True,
+        )
         for ORDERNAME in [
-            # "additive",
+            "additive",
             "subtractive",
         ]:
-            # for METRICNAME in [
-            #     "adaptive_coverage",
-            #     "coverage",
-            #     "directness",
-            #     "relative_directness",
-            # ]:
-            #     log.info(
-            #         f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
-            #     )
-            #     if METRICNAME == "coverage":
-            #         kwargs = {"buff_size": BUFF_SIZE}
-            #     elif METRICNAME == "adaptive_coverage":
-            #         kwargs = {"max_buff": BUFF_SIZE * 2, "min_buff": BUFF_SIZE / 2}
-            #     else:
-            #         kwargs = {}
-            #     foldername = folderoots + "/" + METRICNAME + "_" + ORDERNAME
-            #     if CONNECTED:
-            #         foldername += "_connected"
-            #     if BUILT:
-            #         foldername += "_built"
-            #     if not os.path.exists(foldername):
-            #         os.makedirs(foldername)
-            #     # for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
-            #     for i in range(NUM_TRIAL):
-            #         log.info(f"Start trial {i}")
-            #         metrics_dict, order_growth = growth.order_dynamic_network_growth(
-            #             G,
-            #             built=BUILT,
-            #             keep_connected=CONNECTED,
-            #             order=ORDERNAME,
-            #             metric=METRICNAME,
-            #             progress_bar=False,
-            #             save_metrics=True,
-            #             buff_size_metrics=BUFF_SIZE,
-            #             **kwargs,
-            #         )
-            #         with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
-            #             json.dump(order_growth, f)
-            #         with open(
-            #             foldername + f"/metrics_growth_{i:0{PAD}}.json", "w"
-            #         ) as f:
-            #             json.dump(metrics_dict, f)
+            for METRICNAME in [
+                "adaptive_coverage",
+                "coverage",
+                "directness",
+                "relative_directness",
+            ]:
+                log.info(
+                    f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
+                )
+                if METRICNAME == "coverage":
+                    kwargs = {"buff_size": BUFF_SIZE}
+                elif METRICNAME == "adaptive_coverage":
+                    kwargs = {"max_buff": BUFF_SIZE * 2, "min_buff": BUFF_SIZE / 2}
+                else:
+                    kwargs = {}
+                foldername = folderoots + "/" + METRICNAME + "_" + ORDERNAME
+                if CONNECTED:
+                    foldername += "_connected"
+                if BUILT:
+                    foldername += "_built"
+                if not os.path.exists(foldername):
+                    os.makedirs(foldername)
+                # for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
+                for i in range(NUM_TRIAL):
+                    log.info(f"Start trial {i}")
+                    metrics_dict, order_growth = growth.order_dynamic_network_growth(
+                        G,
+                        built=BUILT,
+                        keep_connected=CONNECTED,
+                        order=ORDERNAME,
+                        metric=METRICNAME,
+                        progress_bar=False,
+                        save_metrics=True,
+                        buff_size_metrics=BUFF_SIZE,
+                        **kwargs,
+                    )
+                    with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
+                        json.dump(order_growth, f)
+                    with open(
+                        foldername + f"/metrics_growth_{i:0{PAD}}.json", "w"
+                    ) as f:
+                        json.dump(metrics_dict, f)
             for METRICNAME in ranking_func:
                 log.info(
                     f"Start computation for metric {METRICNAME}, order {ORDERNAME}"
@@ -138,27 +146,27 @@ if __name__ == "__main__":
                         foldername + f"/metrics_growth_{i:0{PAD}}.json", "w"
                     ) as f:
                         json.dump(metrics_dict, f)
-            # log.info(f"Start random computation, order {ORDERNAME}")
-            # foldername = folderoots + "random_" + ORDERNAME
-            # if CONNECTED:
-            #     foldername += "_connected"
-            # if BUILT:
-            #     foldername += "_built"
-            # if not os.path.exists(foldername):
-            #     os.makedirs(foldername)
-            # for i in range(NUM_RAND_TRIAL):
-            #     log.info(f"Start trial {i}")
-            #     metrics_dict, order_growth = growth.order_ranked_network_growth(
-            #         G,
-            #         built=BUILT,
-            #         keep_connected=CONNECTED,
-            #         order=ORDERNAME,
-            #         ranking_func=metrics.growth_random,
-            #         save_metrics=True,
-            #         buff_size_metrics=BUFF_SIZE,
-            #     )
-            #     with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
-            #         json.dump(order_growth, f)
-            #     with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
-            #         json.dump(metrics_dict, f)
+            log.info(f"Start random computation, order {ORDERNAME}")
+            foldername = folderoots + "random_" + ORDERNAME
+            if CONNECTED:
+                foldername += "_connected"
+            if BUILT:
+                foldername += "_built"
+            if not os.path.exists(foldername):
+                os.makedirs(foldername)
+            for i in range(NUM_RAND_TRIAL):
+                log.info(f"Start trial {i}")
+                metrics_dict, order_growth = growth.order_ranked_network_growth(
+                    G,
+                    built=BUILT,
+                    keep_connected=CONNECTED,
+                    order=ORDERNAME,
+                    ranking_func=metrics.growth_random,
+                    save_metrics=True,
+                    buff_size_metrics=BUFF_SIZE,
+                )
+                with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
+                    json.dump(order_growth, f)
+                with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
+                    json.dump(metrics_dict, f)
     log.info("Finished !")
