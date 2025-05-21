@@ -10,6 +10,11 @@ from matplotlib import pyplot as plt
 import json
 from orderbike.plot import plot_graph
 from utg import utils
+import numpy as np
+
+
+def is_pareto_efficient(x, df, fdim, sdim):
+    return ~np.any(df[(df[fdim] > x[fdim]) & (df[sdim] > x[sdim])])
 
 
 if __name__ == "__main__":
@@ -22,9 +27,12 @@ if __name__ == "__main__":
         mpl.rcParams[key] = plot_params["rcparams"][key]
     for exp in [True, False]:
         fig, axs = plt.subplots(
-            4, 3, figsize=plot_params["figsize"], width_ratios=[1, 3, 3]
+            4,
+            3,
+            figsize=plot_params["figsize"],
+            width_ratios=[1, 3, 3],
         )
-        fig.subplots_adjust(hspace=0.2, wspace=0.4)
+        fig.subplots_adjust(hspace=0.1, wspace=0.35)
         axs[0][1].set_title(
             "Additive growth", fontsize=plot_params["rcparams"]["font.size"] * 1.2
         )
@@ -78,33 +86,46 @@ if __name__ == "__main__":
                     ax.scatter(
                         df_growth[mask_ord & mask_met]["AUC of Directness"],
                         df_growth[mask_ord & mask_met]["AUC of Coverage"],
+                        zorder=2,
                         **{
                             key: val[ids]
                             for key, val in plot_params.items()
                             if key not in ["dpi", "figsize", "rcparams", "order"]
                         },
                     )
-                # if order == "additive":
-                # plt.text(
-                #     0.3,
-                #     0.1,
-                #     " ".join(graphname.split("_")).capitalize(),
-                #     ha="left",
-                #     va="bottom",
-                #     fontsize="large",
-                #     transform=ax.transAxes,
-                #     color="black",
-                #     weight="extra bold",
-                # )
                 ax.set(xlim=[0.4, 1.0], ylim=[0.45, 0.9])
+                parfront = df_growth[mask_ord].copy()
+                parfront = parfront[
+                    parfront.apply(
+                        lambda x: is_pareto_efficient(
+                            x, parfront, "AUC of Coverage", "AUC of Directness"
+                        ),
+                        axis=1,
+                    )
+                ]
+                parfront.sort_values("AUC of Directness", axis=0, inplace=True)
+                ax.plot(
+                    parfront["AUC of Directness"],
+                    parfront["AUC of Coverage"],
+                    linestyle="dashed",
+                    linewidth=1,
+                    color="black",
+                    zorder=1,
+                    label="Pareto front",
+                )
         axs[0][1].legend(prop={"size": plot_params["rcparams"]["font.size"] * 0.5})
-        axs[0][1].set_ylabel("AUC of Coverage")
-        axs[1][1].set_ylabel("AUC of Coverage")
-        axs[2][1].set_ylabel("AUC of Coverage")
-        axs[3][1].set_ylabel("AUC of Coverage")
-        axs[3][1].set_xlabel("AUC of Directness")
-        axs[3][2].set_xlabel("AUC of Directness")
-        savename = folderplot + "/AUC_small_multiples"
+        axs[0][1].set_ylabel("AUC of coverage")
+        axs[1][1].set_ylabel("AUC of coverage")
+        axs[2][1].set_ylabel("AUC of coverage")
+        axs[3][1].set_ylabel("AUC of coverage")
+        axs[3][1].set_xlabel("AUC of directness")
+        axs[3][2].set_xlabel("AUC of directness")
+        for i in range(4):
+            axs[i][2].set(yticklabels=[])
+            if i < 3:
+                axs[i][1].set(xticklabels=[])
+                axs[i][2].set(xticklabels=[])
+        savename = folderplot + "/AUC_small_multiples_paretofront"
         if exp:
             savename += "_expdisc"
         plt.savefig(savename)

@@ -63,9 +63,9 @@ if __name__ == "__main__":
                                 if key not in ["dpi", "figsize", "rcparams", "order"]
                             },
                         )
-                    ax.set_xlabel("AUC of Directness")
-                    ax.set_ylabel("AUC of Coverage")
-                    savename = folderplot + f"/AUC_comparison_cov_dir_{order}_pfdo"
+                    ax.set_xlabel("AUC of directness")
+                    ax.set_ylabel("AUC of coverage")
+                    savename = folderplot + f"/AUC_comparison_cov_dir_{order}"
                     if exp:
                         savename += "_expdisc"
                     # Put ticks at each 0.1
@@ -100,7 +100,7 @@ if __name__ == "__main__":
                     ax.plot(
                         parfront["AUC of Directness"],
                         parfront["AUC of Coverage"],
-                        linestyle="dotted",
+                        linestyle="dashed",
                         linewidth=1,
                         color="black",
                         zorder=1,

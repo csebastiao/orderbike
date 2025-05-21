@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 avg[met][order] = pd.DataFrame(average_x(df_concat))
         for order in ["additive", "subtractive"]:
             fig, axs = plt.subplots(2, 1, figsize=plot_params["figsize"])
-            fig.subplots_adjust(hspace=0.2)
+            fig.subplots_adjust(hspace=0.1)
             trial_dict = {}
             for met in plot_params["order"][:7]:
                 mask = (df_growth["Metric optimized"] == met) & (
