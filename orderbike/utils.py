@@ -9,7 +9,7 @@ import logging
 
 import numpy as np
 from haversine import haversine, haversine_vector
-from networkx import Graph, get_node_attributes, set_edge_attributes
+from networkx import Graph, set_edge_attributes
 from osmnx import get_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
@@ -134,9 +134,7 @@ def add_edge_attr_from_dict(G, attr_dict, name):
 
 def get_node_positions(G):
     """Find all node positions x (longitude) and y (latitude) from the graph G and put them into a numpy array."""
-    lon = [val for key, val in sorted(get_node_attributes(G, "x").items())]
-    lat = [val for key, val in sorted(get_node_attributes(G, "y").items())]
-    return np.transpose(np.array([lat, lon]))
+    return [[G.nodes[n]["x"], G.nodes[n]["y"]] for n in G.nodes]
 
 
 def multidigraph_to_graph(G):
