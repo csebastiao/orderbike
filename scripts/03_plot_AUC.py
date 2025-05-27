@@ -16,7 +16,7 @@ def is_pareto_efficient(x, df, fdim, sdim):
 
 
 if __name__ == "__main__":
-    with open("./scripts/plot_params_AUC.json", "r") as f:
+    with open("./scripts/03_plot_params_AUC.json", "r") as f:
         plot_params = json.load(f)
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]

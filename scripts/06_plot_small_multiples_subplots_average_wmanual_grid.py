@@ -21,7 +21,7 @@ def average_x(df):
 
 if __name__ == "__main__":
     mapping = {0: "C", 1: "H", 2: "D"}
-    with open("./scripts/plot_params_met_sm.json", "r") as f:
+    with open("./scripts/06_plot_params_met_sm.json", "r") as f:
         plot_params = json.load(f)
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]

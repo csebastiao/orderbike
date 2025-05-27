@@ -1,0 +1,127 @@
+# -*- coding: utf-8 -*-
+"""
+Script to find growth order on the toy graphs, with all growth strategies, dynamic and ranked, and random trials.
+"""
+
+import os
+import json
+from orderbike import growth, metrics
+from orderbike.utils import log
+from orderbike.plot import plot_graph
+import osmnx as ox
+
+
+if __name__ == "__main__":
+    BUILT = True
+    CONNECTED = True
+    ranking_func = {}
+    ranking_func["closeness"] = metrics.growth_closeness
+    ranking_func["betweenness"] = metrics.growth_betweenness
+    BUFF_SIZE = 152
+    NUM_RAND_TRIAL = 100
+    graph_name = "Paris"
+    G = ox.load_graphml(
+        "data/processed/plan_paris/paris_bikeplan_pruned_multigraph.graphml"
+    )
+    PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))
+    log.info(f"Start graph {graph_name}")
+    folderoots = "./data/processed/ignored_files/results/"
+    plot_graph(
+        G,
+        filepath=folderoots + "/picture.png",
+        figsize=(10, 10),
+        buffer=False,
+        edge_color="black",
+        edge_linewidth=4,
+        node_color="black",
+        node_size=200,
+        show=False,
+        save=True,
+        close=True,
+    )
+    for ORDERNAME in [
+        "additive",
+        "subtractive",
+    ]:
+        for METRICNAME in [
+            "adaptive_coverage",
+            "coverage",
+            "directness",
+            "relative_directness",
+        ]:
+            log.info(f"Start computation for metric {METRICNAME}, order {ORDERNAME}")
+            if METRICNAME == "coverage":
+                kwargs = {"buff_size": BUFF_SIZE}
+            elif METRICNAME == "adaptive_coverage":
+                kwargs = {"max_buff": BUFF_SIZE * 2, "min_buff": BUFF_SIZE / 2}
+            else:
+                kwargs = {}
+            foldername = folderoots + "/" + METRICNAME + "_" + ORDERNAME
+            if CONNECTED:
+                foldername += "_connected"
+            if BUILT:
+                foldername += "_built"
+            if not os.path.exists(foldername):
+                os.makedirs(foldername)
+            # for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
+            metrics_dict, order_growth = growth.order_dynamic_network_growth(
+                G,
+                built=BUILT,
+                keep_connected=CONNECTED,
+                order=ORDERNAME,
+                metric=METRICNAME,
+                progress_bar=False,
+                save_metrics=True,
+                buff_size_metrics=BUFF_SIZE,
+                **kwargs,
+            )
+            with open(foldername + "/order_growth.json", "w") as f:
+                json.dump(order_growth, f)
+            with open(foldername + "/metrics_growth.json", "w") as f:
+                json.dump(metrics_dict, f)
+        for METRICNAME in ranking_func:
+            log.info(f"Start computation for metric {METRICNAME}, order {ORDERNAME}")
+            foldername = folderoots + METRICNAME + "_" + ORDERNAME
+            if CONNECTED:
+                foldername += "_connected"
+            if BUILT:
+                foldername += "_built"
+            if not os.path.exists(foldername):
+                os.makedirs(foldername)
+            metrics_dict, order_growth = growth.order_ranked_network_growth(
+                G,
+                built=BUILT,
+                keep_connected=CONNECTED,
+                order=ORDERNAME,
+                ranking_func=ranking_func[METRICNAME],
+                save_metrics=True,
+                buff_size_metrics=BUFF_SIZE,
+            )
+            with open(foldername + "/order_growth.json", "w") as f:
+                json.dump(order_growth, f)
+            with open(foldername + "/metrics_growth.json", "w") as f:
+                json.dump(metrics_dict, f)
+        log.info(f"Start random computation, order {ORDERNAME}")
+        foldername = folderoots + "random_" + ORDERNAME
+        if CONNECTED:
+            foldername += "_connected"
+        if BUILT:
+            foldername += "_built"
+        if not os.path.exists(foldername):
+            os.makedirs(foldername)
+        for i in range(NUM_RAND_TRIAL):
+            log.info(f"Start trial {i}")
+            metrics_dict, order_growth = growth.order_ranked_network_growth(
+                G,
+                built=BUILT,
+                keep_connected=CONNECTED,
+                order=ORDERNAME,
+                ranking_func=metrics.growth_random,
+                save_metrics=True,
+                buff_size_metrics=BUFF_SIZE,
+            )
+            with open(foldername + f"/order_growth_{i:0{PAD}}.json", "w") as f:
+                json.dump(order_growth, f)
+            with open(foldername + f"/metrics_growth_{i:0{PAD}}.json", "w") as f:
+                json.dump(metrics_dict, f)
+    log.info("Finished !")

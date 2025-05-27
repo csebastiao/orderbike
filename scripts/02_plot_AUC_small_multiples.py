@@ -21,7 +21,7 @@ if __name__ == "__main__":
     folderplot = "./data/processed/ignored_files/paper/plot"
     if not os.path.exists(folderplot):
         os.makedirs(folderplot)
-    with open("./scripts/plot_params_AUC_sm.json", "r") as f:
+    with open("./scripts/02_plot_params_AUC_sm.json", "r") as f:
         plot_params = json.load(f)
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]

@@ -6,3 +6,4 @@ ipykernel==6.29.3
 haversine==2.8.1
 opencv==4.9.0
 momepy==0.7.0
+python-igraph==0.11.8

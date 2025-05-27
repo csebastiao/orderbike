@@ -54,6 +54,8 @@ def growth_coverage(
     max_buff=400,
     threshold_min_change=0.1,
     threshold_max_change=0.9,
+    keep_searching=True,
+    max_area=0,
 ):
     """Get coverage of the graph G. Works with growth.dynamic_growth function. Use prefunc_growth_coverage and upfunc_growth_coverage for classic coverage, use prefunc_growth_adaptive_coverage and upfunc_growth_adaptive_coverage for adaptive coverage."""
     geom_new = geom.copy()
@@ -64,9 +66,12 @@ def growth_coverage(
         return (new_area - actual_area) / pregraph.edges[edge]["length"]
     # If additive, the max is one increasing the most the area
     elif order == "additive":
-        geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
-        new_area = shapely.ops.unary_union(list(geom_new.values())).area
-        return (new_area - actual_area) / G.edges[edge]["length"]
+        if keep_searching:
+            geom_new[edge] = G.edges[edge]["geometry"].buffer(buff_size)
+            new_area = shapely.ops.unary_union(list(geom_new.values())).area
+            return (new_area - actual_area) / G.edges[edge]["length"]
+        else:
+            return 0
 
 
 def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
@@ -75,28 +80,49 @@ def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
         edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
         for edge in G_actual.edges
     }
+    max_area = shapely.unary_union(
+        [G_actual.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
+    ).area
     return {
         "pregraph": G_actual,
         "order": order,
         "geom": geom,
         "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "max_area": max_area,
         "buff_size": buff_size,
+        "keep_searching": True,
     }
 
 
 def upfunc_growth_coverage(
-    G, G_actual, step, order, buff_size=200, geom=None, actual_area=0, pregraph=None
+    G,
+    G_actual,
+    step,
+    order,
+    buff_size=200,
+    geom=None,
+    actual_area=0,
+    pregraph=None,
+    keep_searching=True,
+    max_area=0,
 ):
     if order == "subtractive":
         geom.pop(step)
     elif order == "additive":
         geom[step] = G.edges[step]["geometry"].buffer(buff_size)
+        actual_area = shapely.ops.unary_union(list(geom.values())).area
+        if actual_area == max_area:
+            keep_searching = False
+        else:
+            keep_searching = True
     return {
         "pregraph": G_actual,
         "order": order,
         "geom": geom,
-        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "actual_area": actual_area,
         "buff_size": buff_size,
+        "keep_searching": keep_searching,
+        "max_area": max_area,
     }
 
 

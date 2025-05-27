@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Script to find growth order on the diagonal grid, with all growth strategies, dynamic and ranked, and random trials.
+Script to find growth order on the grid starting from another edge, with all growth strategies, dynamic and ranked, and random trials.
 """
 
 import os

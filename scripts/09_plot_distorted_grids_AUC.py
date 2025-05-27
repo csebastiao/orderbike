@@ -23,7 +23,7 @@ def find_medoid(array):
 
 
 if __name__ == "__main__":
-    with open("./scripts/plot_params_AUC_dg.json", "r") as f:
+    with open("./scripts/09_plot_params_AUC_dg.json", "r") as f:
         plot_params = json.load(f)
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
