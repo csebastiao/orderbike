@@ -8,6 +8,7 @@ import random
 import networkx as nx
 import numpy as np
 import shapely
+import igraph as ig
 
 from .utils import dist_vector, get_node_positions, log, get_node_dict
 
@@ -342,17 +343,37 @@ def get_shortest_network_path_length_matrix(G, weight="length"):
     Returns:
         numpy.array: Matrix of shortest network path length for all pairs of nodes of G. Matrix with a shape (N, N), with N being the number of nodes in G
     """
-    node_list = list(G.nodes)
-    shortest_matrix = []
-    # Sort the nodes in both loops
-    for ids, dic in sorted(
-        dict(nx.all_pairs_dijkstra_path_length(G, weight=weight)).items()
-    ):
-        # Add 0 values for nodes not in the same components to get symmetrical matrix
-        shortest_matrix.append(
-            [val for key, val in sorted(_fill_dict(dic, node_list).items())]
+    return np.array(
+        ig.Graph.from_networkx(G).distances(
+            source=None, target=None, weights=weight, mode="all"
         )
-    return np.array(shortest_matrix)
+    )
+
+
+# def get_shortest_network_path_length_matrix_deprecated(G, weight="length"):
+#     """
+#     Deprecated
+
+#     Get the symmetric matrix of shortest network path length of a graph G, with weight being called "length". The shortest network path length between the node i and j are in [i, j] and [j, i]. All diagonal values are 0. Value for pairs of nodes from different components is 0.
+
+#     Args:
+#         G (networkx.Graph): Graph on which we want to find shortest network path length for all pairs of nodes.
+#         weight (str, optional): Weight used in Dijkstra algorithm. Defaults to length.
+
+#     Returns:
+#         numpy.array: Matrix of shortest network path length for all pairs of nodes of G. Matrix with a shape (N, N), with N being the number of nodes in G
+#     """
+#     node_list = list(G.nodes)
+#     shortest_matrix = []
+#     # Sort the nodes in both loops
+#     for ids, dic in sorted(
+#         dict(nx.all_pairs_dijkstra_path_length(G, weight=weight)).items()
+#     ):
+#         # Add 0 values for nodes not in the same components to get symmetrical matrix
+#         shortest_matrix.append(
+#             [val for key, val in sorted(_fill_dict(dic, node_list).items())]
+#         )
+#     return np.array(shortest_matrix)
 
 
 def _fill_dict(dictionary, n_list):
