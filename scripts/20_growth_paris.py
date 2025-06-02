@@ -5,9 +5,8 @@ Script to find growth order on the toy graphs, with all growth strategies, dynam
 
 import os
 import json
-from orderbike import growth, metrics
+from orderbike import growth, metrics, plot
 from orderbike.utils import log
-from orderbike.plot import plot_graph
 import osmnx as ox
 
 
@@ -17,16 +16,18 @@ if __name__ == "__main__":
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
-    BUFF_SIZE = 152
-    NUM_RAND_TRIAL = 100
+    BUFF_SIZE = 350
+    MAX_BUFF = 600
+    MIN_BUFF = 200
+    NUM_RAND_TRIAL = 50
     graph_name = "Paris"
-    G = ox.load_graphml(
-        "data/processed/plan_paris/paris_bikeplan_pruned_multigraph.graphml"
-    )
+    folderoots = "./data/processed/ignored_files/results_paris"
+    G = ox.load_graphml(folderoots + "/paris_bikeplan_pruned_multigraph.graphml")
+    for e in G.edges:
+        G.edges[e]["built"] = int(G.edges[e]["built"])
     PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))
     log.info(f"Start graph {graph_name}")
-    folderoots = "./data/processed/ignored_files/results/"
-    plot_graph(
+    plot.plot_graph(
         G,
         filepath=folderoots + "/picture.png",
         figsize=(10, 10),
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     )
     for ORDERNAME in [
         "additive",
-        "subtractive",
+        # "subtractive",
     ]:
         for METRICNAME in [
             "adaptive_coverage",
@@ -81,7 +82,7 @@ if __name__ == "__main__":
                 json.dump(metrics_dict, f)
         for METRICNAME in ranking_func:
             log.info(f"Start computation for metric {METRICNAME}, order {ORDERNAME}")
-            foldername = folderoots + METRICNAME + "_" + ORDERNAME
+            foldername = folderoots + "/" + METRICNAME + "_" + ORDERNAME
             if CONNECTED:
                 foldername += "_connected"
             if BUILT:
@@ -102,7 +103,7 @@ if __name__ == "__main__":
             with open(foldername + "/metrics_growth.json", "w") as f:
                 json.dump(metrics_dict, f)
         log.info(f"Start random computation, order {ORDERNAME}")
-        foldername = folderoots + "random_" + ORDERNAME
+        foldername = folderoots + "/" + "random_" + ORDERNAME
         if CONNECTED:
             foldername += "_connected"
         if BUILT:

@@ -1,0 +1,28 @@
+{
+    "order":["coverage", "adaptive_coverage", "directness", "relative_directness", "betweenness","closeness", "random"],
+    "label":["Coverage", "Adaptive coverage", "Directness", "Relative directness", "Betweenness","Closeness", "Random"],
+    "color":["#0173b2", "#56b4e9", "#d55e00", "#de8f05", "#029e73", "#cc78bc", "#949494"],
+    "edgecolor":["Face", "Face", "Face", "Face", "Face", "Face", "Face"],
+    "marker":["^", "v", "s", "D", "h", "p", "o"],
+    "alpha":[0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.5],
+    "s":[90, 90, 90, 75, 100, 100, 60],
+    "figsize":[6.18, 6.18],
+    "rcparams":{
+        "font.size":10,
+        "font.family": "sans-serif",
+        "font.sans-serif": "Arial",
+        "axes.grid":"True",
+        "axes.spines.right": "False",
+        "axes.spines.top": "False",
+        "axes.axisbelow": "True",
+        "grid.color": "E1E1E1",
+        "xtick.bottom": "True",
+        "ytick.left": "True",
+        "figure.frameon": "False",
+        "figure.dpi": 400,
+        "savefig.bbox": "tight",
+        "legend.loc": "lower left",
+        "legend.edgecolor": "black",
+        "legend.facecolor": "F7F7F7"
+    }
+}

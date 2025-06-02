@@ -28,7 +28,8 @@ def get_auc(
     yy,
     normalize_x=True,
     normalize_y=True,
-    zero_yaxis=True,
+    max_comparison_y="max",
+    yaxis_method="bottom",
     exp_discounting=True,
     exp_gap=10,
 ):
@@ -36,13 +37,24 @@ def get_auc(
     if normalize_x:
         xx = (np.array(xx) - np.min(xx)) / (np.max(xx) - np.min(xx))
     if normalize_y:
-        if zero_yaxis:
+        if yaxis_method == "bottom":
             min_y = 0
-        else:
+            max_y = np.max(yy)
+        elif yaxis_method == "top":
             min_y = np.min(yy)
-        yy = (np.array(yy) - min_y) / (np.max(yy) - min_y)
+            max_y = 1
+        elif yaxis_method == "both":
+            min_y = 0
+            max_y = 1
+        elif yaxis_method == "natural":
+            min_y = np.min(yy)
+            max_y = np.max(yy)
+        yy = (np.array(yy) - min_y) / (max_y - min_y)
     # Need to normalize by potential best curve to get AUC from 0 to 1
-    max_yy = max(yy)
+    if max_comparison_y == "max":
+        max_yy = max(yy)
+    elif max_comparison_y == "one":
+        max_yy = 1
     optimal_yy = np.array([yy[0]] + [max_yy] * (len(yy) - 2) + [yy[-1]])
     if exp_discounting:
         exp_disc = np.exp(-xx * np.log(exp_gap))

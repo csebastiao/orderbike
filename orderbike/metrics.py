@@ -11,6 +11,7 @@ import shapely
 import igraph as ig
 import scipy
 from haversine import haversine
+import osmnx as ox
 
 from .utils import get_node_positions, dist_vector, log, get_node_dict
 
@@ -76,18 +77,15 @@ def growth_coverage(
 
 def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
-    geom = {
-        edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
-        for edge in G_actual.edges
-    }
-    max_area = shapely.unary_union(
-        [G_actual.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
-    ).area
+    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
+    geom = gdf.geometry.buffer(buff_size)
+    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
+    max_area = gdf.geometry.buffer(buff_size).union_all().area
     return {
         "pregraph": G_actual,
         "order": order,
-        "geom": geom,
-        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "geom": geom.to_dict(),
+        "actual_area": geom.union_all().area,
         "max_area": max_area,
         "buff_size": buff_size,
         "keep_searching": True,
@@ -141,15 +139,13 @@ def prefunc_growth_adaptive_coverage(
     elif order == "subtractive":
         buff_size = min_buff
     log.info(f"Starting buffer size for {order} adapative coverage is {buff_size}.")
-    geom = {
-        edge: G_actual.edges[edge]["geometry"].buffer(buff_size)
-        for edge in G_actual.edges
-    }
+    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
+    geom = gdf.geometry.buffer(buff_size)
     return {
         "pregraph": G_actual,
         "order": order,
-        "geom": geom,
-        "actual_area": shapely.ops.unary_union(list(geom.values())).area,
+        "geom": geom.to_dict(),
+        "actual_area": geom.union_all().area,
         "buff_size": buff_size,
         "min_buff": min_buff,
         "max_buff": max_buff,

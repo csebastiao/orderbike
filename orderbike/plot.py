@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import shapely
 import seaborn as sns
+# TODO remove seaborn dependency
 
 from .utils import get_node_positions
 
