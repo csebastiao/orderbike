@@ -15,6 +15,13 @@ def is_pareto_efficient(x, df, fdim, sdim):
     return ~np.any(df[(df[fdim] > x[fdim]) & (df[sdim] > x[sdim])])
 
 
+def average_x(df):
+    arr = []
+    for ind in set(df.index):
+        arr.append(df[df.index == ind].mean())
+    return arr
+
+
 if __name__ == "__main__":
     with open("./scripts/03_plot_params_AUC.json", "r") as f:
         plot_params = json.load(f)
@@ -60,9 +67,40 @@ if __name__ == "__main__":
                             **{
                                 key: val[ids]
                                 for key, val in plot_params.items()
-                                if key not in ["dpi", "figsize", "rcparams", "order"]
+                                if key
+                                not in [
+                                    "dpi",
+                                    "figsize",
+                                    "rcparams",
+                                    "order",
+                                    "errorbar",
+                                ]
                             },
                         )
+                        if met == "random":
+                            xx_mean = df_growth[mask_ord & mask_met][
+                                "AUC of Directness"
+                            ].mean()
+                            xx_std = df_growth[mask_ord & mask_met][
+                                "AUC of Directness"
+                            ].std()
+                            yy_mean = df_growth[mask_ord & mask_met][
+                                "AUC of Coverage"
+                            ].mean()
+                            yy_std = df_growth[mask_ord & mask_met][
+                                "AUC of Coverage"
+                            ].std()
+                            ax.errorbar(
+                                x=xx_mean,
+                                y=yy_mean,
+                                yerr=yy_std * 2,
+                                xerr=xx_std * 2,
+                                fmt="o",
+                                **{
+                                    key: val
+                                    for key, val in plot_params["errorbar"].items()
+                                },
+                            )
                     ax.set_xlabel("AUC of directness")
                     ax.set_ylabel("AUC of coverage")
                     savename = folderplot + f"/AUC_comparison_cov_dir_{order}"

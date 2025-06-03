@@ -5,13 +5,13 @@ Script to find growth order on the toy graphs, with all growth strategies, dynam
 
 import os
 import json
-from orderbike import growth, metrics, plot
+from orderbike import growth, metrics
 from orderbike.utils import log
 import osmnx as ox
 
 
 if __name__ == "__main__":
-    BUILT = True
+    BUILT = False
     CONNECTED = True
     ranking_func = {}
     ranking_func["closeness"] = metrics.growth_closeness
@@ -27,19 +27,19 @@ if __name__ == "__main__":
         G.edges[e]["built"] = int(G.edges[e]["built"])
     PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))
     log.info(f"Start graph {graph_name}")
-    plot.plot_graph(
-        G,
-        filepath=folderoots + "/picture.png",
-        figsize=(10, 10),
-        buffer=False,
-        edge_color="black",
-        edge_linewidth=4,
-        node_color="black",
-        node_size=200,
-        show=False,
-        save=True,
-        close=True,
-    )
+    # plot.plot_graph(
+    #     G,
+    #     filepath=folderoots + "/picture.png",
+    #     figsize=(10, 10),
+    #     buffer=False,
+    #     edge_color="black",
+    #     edge_linewidth=4,
+    #     node_color="black",
+    #     node_size=200,
+    #     show=False,
+    #     save=True,
+    #     close=True,
+    # )
     for ORDERNAME in [
         "additive",
         # "subtractive",
