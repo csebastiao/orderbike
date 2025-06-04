@@ -66,10 +66,7 @@ def order_ranked_network_growth(
                 valid_cases = [
                     [edge, sgn * met]
                     for edge, met in testing_ranking
-                    if edge
-                    in _valid_edges(
-                        G, G_actual, init_edges, built, keep_connected, order
-                    )
+                    if edge in valid_edges
                 ]
                 valid_edges = [val[0] for val in valid_cases]
                 valid_mets = [val[1] for val in valid_cases]
@@ -400,7 +397,7 @@ def _update_actual_graph(G, G_actual, step, order):
 
 def get_subtractive_invalid_edges(G, built=True):
     """
-    Find all invalid edges that if removed would create a new, unacceptable component to the graph. A new component is unacceptable if it's not a subgraph of a component that is part of the built graph but not of the actual graph.
+     Find all invalid edges that if removed would create a new, unacceptable component to the graph. A new component is unacceptable if it's not a subgraph of a component that is part of the built graph but not of the actual graph.
 
     Args:
         G (networkx.Graph): Graph on which we want to remove edges.
@@ -409,35 +406,85 @@ def get_subtractive_invalid_edges(G, built=True):
     Returns:
         list: List of tuple, each tuple being an invalid edge to remove from G.
     """
-    # Find all bridges and remove bridges that when removed leave an isolated node
-    invalid_edges = [
-        edge
-        for edge in nx.bridges(G)
-        if not any(nx.degree(G, node) == 1 for node in edge[:2])
-    ]
-    # If there are elected nodes there are built edges that we can't remove
+    invalid_edges = []
+    # Put built edges in invalid edges to remove
     if built:
         built_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
         invalid_edges += built_edges
-        invalid_edges = set(invalid_edges)
         elected_nodes = elect_nodes(G.edge_subgraph(built_edges))
-    # If built is False work stops before checking elected_nodes, if built is True elected_nodes is created so it works
-    if built is False or nx.number_connected_components(G) == len(elected_nodes):
-        return invalid_edges
-    # New component can be created only if part of a new component with a built part
-    else:
-        updated_invalid_edges = invalid_edges.copy()
-        for edge in invalid_edges:
-            if edge not in built_edges:
-                H = G.copy()
-                H.remove_edge(*edge)
-                # Accept edges (remove from invalid edges) that if removed from the graph create a new component with a built part
-                if not any(
-                    not any(node in cc for node in elected_nodes)
-                    for cc in list(nx.connected_components(H))
-                ):
-                    updated_invalid_edges.remove(edge)
-        return updated_invalid_edges
+    init_num_cc = nx.number_connected_components(G)
+    for edge in G.edges:
+        H = G.copy()
+        H.remove_edge(*edge)
+        # Remove isolated nodes
+        for node in edge[:2]:
+            if H.degree(node) == 0:
+                H.remove_node(node)
+        # If new component is created by removing an edge
+        if nx.number_connected_components(H) > init_num_cc:
+            if built:
+                # If edge is built already, already in the invalid edges so pass
+                if G.edges[edge]["built"] == 1:
+                    pass
+                # If edge is not built, need to check if there is any component without a built part
+                # TODO simplify in a double any list comprehension ?
+                else:
+                    for cc in list(nx.connected_components(H)):
+                        test = []
+                        for node in elected_nodes:
+                            if node in cc:
+                                test.append(True)
+                            else:
+                                test.append(False)
+                        if not any(test):
+                            invalid_edges.append(edge)
+                            break
+            else:
+                invalid_edges.append(edge)
+    return invalid_edges
+
+
+## Was not working for real network
+# def get_subtractive_invalid_edges_deprecated(G, built=True):
+#     """
+#     Find all invalid edges that if removed would create a new, unacceptable component to the graph. A new component is unacceptable if it's not a subgraph of a component that is part of the built graph but not of the actual graph.
+
+#     Args:
+#         G (networkx.Graph): Graph on which we want to remove edges.
+#         built (bool, optional): If True, there is a built component to the graph to take into account. This is represented by an edge attribute on all edges, that is 1 if it's built, 0 if it's not built. Defaults to True.
+
+#     Returns:
+#         list: List of tuple, each tuple being an invalid edge to remove from G.
+#     """
+#     # Find all bridges and remove bridges that when removed leave an isolated node
+#     invalid_edges = [
+#         edge
+#         for edge in nx.bridges(G)
+#         if not any(nx.degree(G, node) == 1 for node in edge[:2])
+#     ]
+#     # If there are elected nodes there are built edges that we can't remove
+#     if built:
+#         built_edges = [edge for edge in G.edges if G.edges[edge]["built"] == 1]
+#         invalid_edges += built_edges
+#         invalid_edges = set(invalid_edges)
+#         elected_nodes = elect_nodes(G.edge_subgraph(built_edges))
+#     # If built is False work stops before checking elected_nodes, if built is True elected_nodes is created so it works
+#     if built is False or nx.number_connected_components(G) == len(elected_nodes):
+#         return invalid_edges
+#     # New component can be created only if part of a new component with a built part
+#     else:
+#         updated_invalid_edges = invalid_edges.copy()
+#         for edge in invalid_edges:
+#             if edge not in built_edges:
+#                 H = G.copy()
+#                 H.remove_edge(*edge)
+#                 # Accept edges (remove from invalid edges) that if removed from the graph create a new component with a built part
+#                 if not any(
+#                     not any(node in cc for node in elected_nodes)
+#                     for cc in list(nx.connected_components(H))
+#                 ):
+#                     updated_invalid_edges.remove(edge)
+#         return updated_invalid_edges
 
 
 def get_additive_invalid_edges(G_actual, G_final):

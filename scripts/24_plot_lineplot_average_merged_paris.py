@@ -47,7 +47,7 @@ if __name__ == "__main__":
             avg[met][order] = pd.DataFrame(average_x(df_concat))
     for order in [
         "additive",
-        # "subtractive",
+        "subtractive",
     ]:
         fig, axs = plt.subplots(2, 1, figsize=plot_params["figsize"])
         fig.subplots_adjust(hspace=0.1)

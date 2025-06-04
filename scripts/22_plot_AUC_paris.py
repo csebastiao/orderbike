@@ -35,7 +35,7 @@ if __name__ == "__main__":
             df_growth = pd.read_json(savename)
             for order in [
                 "additive",
-                # "subtractive",
+                "subtractive",
             ]:
                 num = 7
                 mask_ord = df_growth["Order"] == order

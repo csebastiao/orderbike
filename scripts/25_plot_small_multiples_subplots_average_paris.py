@@ -42,7 +42,7 @@ if __name__ == "__main__":
             df_concat = pd.DataFrame()
             for order in [
                 "additive",
-                # "subtractive",
+                "subtractive",
             ]:
                 name = folderoots + f"{met}_{order}_connected"
                 if built:

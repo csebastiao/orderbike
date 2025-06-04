@@ -13,11 +13,16 @@ from networkx import Graph, set_edge_attributes
 from osmnx import get_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
+import os
+
+# Get the absolute path to the general folder
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_PATH = os.path.join(PROJECT_ROOT, "growth.log")
 
 # Root logger that is then used in functions in growth and metrics. Comment filename to avoid saving results, change level to keep only some messages.
 logging.basicConfig(
-    filename="growth.log",
-    level=logging.INFO,
+    filename=LOG_PATH,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 log = logging.getLogger()

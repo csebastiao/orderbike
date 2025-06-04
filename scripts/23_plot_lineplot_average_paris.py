@@ -40,7 +40,7 @@ if __name__ == "__main__":
             df_concat = pd.DataFrame()
             for order in [
                 "additive",
-                # "subtractive",
+                "subtractive",
             ]:
                 name = folderoots + f"{met}_{order}_connected"
                 if built:
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                     avg[met][order] = pd.read_json(name + "metrics_growth.json")
         for order in [
             "additive",
-            # "subtractive",
+            "subtractive",
         ]:
             trial_dict = {}
             for met in plot_params["order"][:7]:

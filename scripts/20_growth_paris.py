@@ -69,7 +69,6 @@ if __name__ == "__main__":
                     foldername += "_built"
                 if not os.path.exists(foldername):
                     os.makedirs(foldername)
-                # for i in range(find_last_trial(foldername) + 1, NUM_TRIAL):
                 metrics_dict, order_growth = growth.order_dynamic_network_growth(
                     G,
                     built=BUILT,
