@@ -56,6 +56,7 @@ if __name__ == "__main__":
                     df = pd.read_json(trial)
                     df_concat = pd.concat([df_concat, df])
                 avg[met][order] = pd.DataFrame(average_x(df_concat))
+        max_xx = avg["random"]["additive"]["xx"].max()
         for order in ["additive", "subtractive"]:
             fig, axs = plt.subplots(2, 1, figsize=plot_params["figsize"])
             fig.subplots_adjust(hspace=0.1)
@@ -76,20 +77,19 @@ if __name__ == "__main__":
                 if auc == "AUC of Coverage":
                     ax = axs[0]
                     yy = "coverage"
-                    ax.set_ylabel("Coverage ($km^2$)")
-                    ax.axes.xaxis.set_ticklabels([])
-                    ratio = 10**6
+                    ax.set_ylabel("Normalized coverage")
+                    ratio = avg["random"]["additive"]["coverage"].max()
                 else:
                     ax = axs[1]
                     yy = "directness"
                     ax.set_ylabel("Directness")
                     ratio = 1
-                    ax.set_xlabel("Built length ($km$)")
+                    ax.set_xlabel("Normalized built length")
                 ax.set_xlim([0, max(df["xx"]) / 10**3])
                 for ids, met in enumerate(plot_params["order"][:7]):
                     df = avg[met][order]
                     ax.plot(
-                        df["xx"] / 10**3,
+                        df["xx"] / max_xx,
                         df[yy] / ratio,
                         **{
                             key: val[ids]
@@ -97,6 +97,9 @@ if __name__ == "__main__":
                             if key not in ["dpi", "figsize", "rcparams", "order"]
                         },
                     )
+            axs[0].set_xlim([0, 1])
+            axs[0].axes.xaxis.set_ticklabels([])
+            axs[1].set_xlim([0, 1])
             axs[0].legend(prop={"size": plot_params["rcparams"]["font.size"] * 0.75})
             ax.set_axisbelow(True)
             # plt.tight_layout()

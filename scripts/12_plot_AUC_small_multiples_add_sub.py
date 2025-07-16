@@ -25,92 +25,15 @@ if __name__ == "__main__":
         plot_params = json.load(f)
     for key in plot_params["rcparams"]:
         mpl.rcParams[key] = plot_params["rcparams"][key]
+    ordcol = ["green", "red"]
     for exp in [True, False]:
         fig, axs = plt.subplots(
             4,
-            3,
+            2,
             figsize=plot_params["figsize"],
-            width_ratios=[1, 3, 3],
-        )
-        axs[0][1].text(
-            -0.23,
-            0.95,
-            "a",
-            transform=axs[0][1].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[0][2].text(
-            -0.13,
-            0.95,
-            "b",
-            transform=axs[0][2].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[1][1].text(
-            -0.23,
-            0.95,
-            "c",
-            transform=axs[1][1].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[1][2].text(
-            -0.13,
-            0.95,
-            "d",
-            transform=axs[1][2].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[2][1].text(
-            -0.23,
-            0.95,
-            "e",
-            transform=axs[2][1].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[2][2].text(
-            -0.13,
-            0.95,
-            "f",
-            transform=axs[2][2].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[3][1].text(
-            -0.23,
-            0.95,
-            "g",
-            transform=axs[3][1].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
-        )
-        axs[3][2].text(
-            -0.13,
-            0.95,
-            "h",
-            transform=axs[3][2].transAxes,
-            fontsize=plot_params["rcparams"]["font.size"] * 1.2,
-            color="black",
-            weight="extra bold",
+            width_ratios=[1, 3],
         )
         fig.subplots_adjust(hspace=0.1, wspace=0.35)
-        axs[0][1].set_title(
-            "Additive growth", fontsize=plot_params["rcparams"]["font.size"] * 1.2
-        )
-        axs[0][2].set_title(
-            "Subtractive growth", fontsize=plot_params["rcparams"]["font.size"] * 1.2
-        )
         for idxg, graphname in enumerate(
             [
                 "grid",
@@ -138,38 +61,29 @@ if __name__ == "__main__":
                 savename += "_expdisc"
             savename += ".json"
             df_growth = pd.read_json(savename)
-            for idxo, order in enumerate(
-                [
-                    "additive",
-                    "subtractive",
-                ]
-            ):
-                ax = axs[idxg][idxo + 1]
+            for idxo, order in enumerate(["additive", "subtractive"]):
+                ax = axs[idxg][1]
                 num = 7
-                if graphname == "grid":
-                    num += 1
-                    if order == "subtractive":
-                        df_growth.loc[
-                            df_growth["Metric optimized"] == "manual", "Order"
-                        ] = "subtractive"
                 mask_ord = df_growth["Order"] == order
                 for ids, met in enumerate(plot_params["order"][:num]):
                     mask_met = df_growth["Metric optimized"] == met
                     ax.scatter(
                         df_growth[mask_ord & mask_met]["AUC of Directness"],
                         df_growth[mask_ord & mask_met]["AUC of Coverage"],
+                        color=ordcol[idxo],
                         zorder=2,
                         **{
                             key: val[ids]
                             for key, val in plot_params.items()
-                            if key not in ["dpi", "figsize", "rcparams", "order"]
+                            if key
+                            not in ["dpi", "figsize", "rcparams", "order", "color"]
                         },
                     )
                 if exp:
                     ax.set(xlim=[0.4, 1.0], ylim=[0.3, 0.8])
                 else:
                     ax.set(xlim=[0.4, 1.0], ylim=[0.45, 0.9])
-                parfront = df_growth[mask_ord].copy()
+                parfront = df_growth[df_growth["Metric optimized"] != "manual"].copy()
                 parfront = parfront[
                     parfront.apply(
                         lambda x: is_pareto_efficient(
@@ -194,13 +108,10 @@ if __name__ == "__main__":
         axs[2][1].set_ylabel("AUC of coverage")
         axs[3][1].set_ylabel("AUC of coverage")
         axs[3][1].set_xlabel("AUC of directness")
-        axs[3][2].set_xlabel("AUC of directness")
         for i in range(4):
-            axs[i][2].set(yticklabels=[])
             if i < 3:
                 axs[i][1].set(xticklabels=[])
-                axs[i][2].set(xticklabels=[])
-        savename = folderplot + "/AUC_small_multiples_paretofront"
+        savename = folderplot + "/AUC_small_multiples_paretofront_asmerged"
         if exp:
             savename += "_expdisc"
         plt.savefig(savename)

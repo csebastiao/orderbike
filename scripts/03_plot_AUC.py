@@ -30,9 +30,9 @@ if __name__ == "__main__":
     for graphname in [
         "grid",
         # "grid_2",
-        # "radio_concentric",
-        # "grid_with_diagonal",
-        # "three_bridges",
+        "radio_concentric",
+        "grid_with_diagonal",
+        "three_bridges",
     ]:
         folderoots = f"./data/processed/ignored_files/paper/{graphname}/"
         folderplot = folderoots + "plots/AUC"

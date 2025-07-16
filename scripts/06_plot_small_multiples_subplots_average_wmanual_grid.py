@@ -67,16 +67,19 @@ if __name__ == "__main__":
                 auc_cov_avg[met][order] = get_auc(
                     df["xx"],
                     avg[met][order]["coverage"].values,
-                    zero_yaxis=False,
+                    normalize_y=True,
+                    yaxis_method="natural",
                     exp_discounting=False,
                 )
                 auc_dir_avg[met][order] = get_auc(
                     df["xx"],
                     avg[met][order]["directness"].values,
                     normalize_y=False,
+                    max_comparison_y="one",
                     exp_discounting=False,
                 )
         xmax = df["xx"].max()
+        covmax = df["coverage"].max()
         savename = str(folderoots) + "/auc_table_growth.json"
         df_growth = pd.read_json(savename)
         for order in ["additive", "subtractive"]:
@@ -84,15 +87,15 @@ if __name__ == "__main__":
             fig, axs = plt.subplots(
                 nrows=10, ncols=2, figsize=plot_params["figsize"], sharex="col"
             )
-            axs[0][0].set_ylabel("Coverage (km$^2$)", rotation=0, y=1.2, labelpad=-30)
+            axs[0][0].set_ylabel("Normalized coverage", rotation=0, y=1.2, labelpad=-30)
             axs[0][1].set_ylabel("Directness", rotation=0, y=1.2, labelpad=-30)
             for auc in ["AUC of Coverage", "AUC of Directness"]:
                 for num, met in enumerate(plot_params["order"][:7]):
                     if auc == "AUC of Coverage":
                         yy = "coverage"
                         ax = axs[num][0]
-                        ax.set_ylim([0, 1.5])
-                        ax.set_yticks([0.0, 0.5, 1, 1.5])
+                        ax.set_ylim([0, 1])
+                        ax.set_yticks([0, 0.5, 1])
                         plt.text(
                             0.95,
                             0.1,
@@ -115,7 +118,7 @@ if __name__ == "__main__":
                             color=plot_params["color_label"][num],
                             weight="extra bold",
                         )
-                        ratio = 10**6
+                        ratio = covmax
                     else:
                         yy = "directness"
                         ax = axs[num][1]
@@ -133,7 +136,7 @@ if __name__ == "__main__":
                             weight="extra bold",
                         )
                         ratio = 1
-                    ax.set_xlim([0, xmax / 10**3])
+                    ax.set_xlim([0, 1])
                     for trial in [
                         x
                         for x in Path(
@@ -143,7 +146,7 @@ if __name__ == "__main__":
                     ]:
                         df = pd.read_json(trial)
                         ax.plot(
-                            df["xx"] / 10**3,
+                            df["xx"] / xmax,
                             df[yy] / ratio,
                             **{
                                 key: val[1]
@@ -160,7 +163,7 @@ if __name__ == "__main__":
                             },
                         )
                     ax.plot(
-                        avg[met][order]["xx"] / 10**3,
+                        avg[met][order]["xx"] / xmax,
                         avg[met][order][yy] / ratio,
                         label="Average",
                         **{
@@ -183,21 +186,23 @@ if __name__ == "__main__":
                 auc_cov = get_auc(
                     df["xx"],
                     df["coverage"].values,
-                    zero_yaxis=False,
+                    normalize_y=True,
+                    yaxis_method="natural",
                     exp_discounting=False,
                 )
                 auc_dir = get_auc(
                     df["xx"],
                     df["directness"].values,
                     normalize_y=False,
+                    max_comparison_y="one",
                     exp_discounting=False,
                 )
                 for idx, auc in enumerate(["AUC of Coverage", "AUC of Directness"]):
                     if auc == "AUC of Coverage":
                         yy = "coverage"
                         ax = axs[7 + i][0]
-                        ax.set_ylim([0, 1.5])
-                        ax.set_yticks([0.0, 0.5, 1, 1.5])
+                        ax.set_ylim([0, 1])
+                        ax.set_yticks([0, 0.5, 1])
                         plt.text(
                             0.95,
                             0.1,
@@ -220,7 +225,7 @@ if __name__ == "__main__":
                             color="black",
                             weight="extra bold",
                         )
-                        ratio = 10**6
+                        ratio = covmax
                     else:
                         yy = "directness"
                         ax = axs[7 + i][1]
@@ -238,9 +243,9 @@ if __name__ == "__main__":
                             weight="extra bold",
                         )
                         ratio = 1
-                    ax.set_xlim([0, xmax / 10**3])
+                    ax.set_xlim([0, 1])
                     ax.plot(
-                        df["xx"] / 10**3,
+                        df["xx"] / xmax,
                         df[yy] / ratio,
                         **{
                             key: val[0]
@@ -255,10 +260,10 @@ if __name__ == "__main__":
                             ]
                         },
                     )
-            axs[9][0].set_xlabel("Built length (km)")
-            axs[9][1].set_xlabel("Built length (km)")
-            axs[9][0].set_xlim([0, xmax / 10**3])
-            axs[9][1].set_xlim([0, xmax / 10**3])
+            axs[9][0].set_xlabel("Normalized built length")
+            axs[9][1].set_xlabel("Normalized built length")
+            axs[9][0].set_xlim([0, 1])
+            axs[9][1].set_xlim([0, 1])
             savename = folderplot + f"/sm_all_{order}_average_wmanual"
             plt.savefig(savename + ".png")
             plt.close()

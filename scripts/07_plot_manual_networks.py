@@ -43,6 +43,32 @@ if __name__ == "__main__":
         (49, 59),
         (94, 95),
     ]
+    order_disconnected_center = [
+        (0, 10),
+        (20, 21),
+        (40, 50),
+        (70, 71),
+        (80, 90),
+        (1, 2),
+        (91, 92),
+        (3, 13),
+        (42, 52),
+        (83, 93),
+        (4, 5),
+        (6, 16),
+        (47, 57),
+        (86, 96),
+        (7, 8),
+        (97, 98),
+        (9, 19),
+        (28, 29),
+        (78, 79),
+        (89, 99),
+        (49, 59),
+        (94, 95),
+        (34, 44),
+        (55, 65),
+    ]
     order_deprecated_1 = [
         (0, 1),
         (1, 2),
@@ -65,6 +91,29 @@ if __name__ == "__main__":
         (30, 40),
         (40, 50),
         (50, 60),
+    ]
+    order_deprecated_1_center = [
+        (40, 41),
+        (41, 42),
+        (42, 43),
+        (43, 44),
+        (44, 45),
+        (45, 46),
+        (46, 47),
+        (47, 48),
+        (48, 49),
+        (49, 39),
+        (39, 29),
+        (29, 19),
+        (49, 59),
+        (59, 69),
+        (69, 79),
+        (10, 20),
+        (20, 30),
+        (30, 40),
+        (40, 50),
+        (50, 60),
+        (60, 70),
     ]
     order_deprecated_2 = [
         (4, 14),
@@ -202,71 +251,122 @@ if __name__ == "__main__":
     ]
     orders = [
         order_disconnected,
+        order_disconnected_center,
         order_deprecated_1,
+        order_deprecated_1_center,
         order_deprecated_2,
         order_midcovmiddir,
         order_maxcovmindir,
         order_mincovmaxdir,
         order_deprecated_3,
+        G_init.edges,
     ]
     networks = [G_init.edge_subgraph(order) for order in orders]
     names = [
         "disconnected",
+        "disconnected_center",
         "deprecated_1",
+        "deprecated_1_center",
         "deprecated_2",
         "midcovmiddir",
         "maxcovmindir",
         "mincovmaxdir",
         "deprecated_3",
+        "full",
     ]
     fig_mul, ax_mul = plt.subplots(figsize=(10, 10))
-    for idx, G in enumerate(networks):
-        if names[idx] == "deprecated_1":
-            fig_ind, ax_ind = plt.subplots(figsize=(10, 10), layout="constrained")
-            ax_ind.set_xticks([])
-            ax_ind.set_yticks([])
-            geom_node = [
-                shapely.Point(G.nodes[n]["x"], G.nodes[n]["y"]) for n in G.nodes
+    for below in [True, False]:
+        if below:
+            geom_node_full = [
+                shapely.Point(G_init.nodes[n]["x"], G_init.nodes[n]["y"])
+                for n in G_init.nodes
             ]
-            gdf_edge = gpd.GeoDataFrame(
-                geometry=list(nx.get_edge_attributes(G, "geometry").values())
+            gdf_edge_full = gpd.GeoDataFrame(
+                geometry=list(nx.get_edge_attributes(G_init, "geometry").values())
             )
-            buff = gpd.GeoSeries(gdf_edge.geometry.buffer(152).unary_union)
-            gdf_node = gpd.GeoDataFrame(index=[n for n in G.nodes], geometry=geom_node)
-            gdf_node["color"] = "black"
-            gdf_node.loc[[60, 69], "color"] = "red"
-            gdf_node.plot(
-                ax=ax_ind, color=gdf_node["color"].values, zorder=2, markersize=200
+            gdf_node_full = gpd.GeoDataFrame(
+                index=[n for n in G_init.nodes], geometry=geom_node_full
             )
-            gdf_edge.plot(ax=ax_ind, color="black", linewidth=4, zorder=1)
-            buff.plot(ax=ax_ind, color="gray", alpha=0.2, zorder=0)
-        else:
-            fig_ind, ax_ind = plot_graph(
-                G,
-                filepath=folderplot,
-                figsize=(10, 10),
-                buffer=True,
-                buff_size=152,
-                buff_color="grey",
-                edge_color="black",
-                edge_linewidth=4,
-                node_color="black",
-                node_size=200,
-                show=False,
-                save=False,
-                close=False,
+            gdf_node_full["color"] = "black"
+        for idx, G in enumerate(networks):
+            if names[idx] == "deprecated_1":
+                fig_ind, ax_ind = plt.subplots(figsize=(10, 10), layout="constrained")
+                ax_ind.set_xticks([])
+                ax_ind.set_yticks([])
+                geom_node = [
+                    shapely.Point(G.nodes[n]["x"], G.nodes[n]["y"]) for n in G.nodes
+                ]
+                gdf_edge = gpd.GeoDataFrame(
+                    geometry=list(nx.get_edge_attributes(G, "geometry").values())
+                )
+                buff = gpd.GeoSeries(gdf_edge.geometry.buffer(152).unary_union)
+                gdf_node = gpd.GeoDataFrame(
+                    index=[n for n in G.nodes], geometry=geom_node
+                )
+                gdf_node["color"] = "black"
+                gdf_node.loc[[60, 69], "color"] = "red"
+                gdf_node.plot(
+                    ax=ax_ind, color=gdf_node["color"].values, zorder=2, markersize=200
+                )
+                gdf_edge.plot(ax=ax_ind, color="black", linewidth=4, zorder=1)
+                buff.plot(ax=ax_ind, color="gray", alpha=0.2, zorder=0)
+            elif names[idx] == "deprecated_1_center":
+                fig_ind, ax_ind = plt.subplots(figsize=(10, 10), layout="constrained")
+                ax_ind.set_xticks([])
+                ax_ind.set_yticks([])
+                geom_node = [
+                    shapely.Point(G.nodes[n]["x"], G.nodes[n]["y"]) for n in G.nodes
+                ]
+                gdf_edge = gpd.GeoDataFrame(
+                    geometry=list(nx.get_edge_attributes(G, "geometry").values())
+                )
+                buff = gpd.GeoSeries(gdf_edge.geometry.buffer(152).unary_union)
+                gdf_node = gpd.GeoDataFrame(
+                    index=[n for n in G.nodes], geometry=geom_node
+                )
+                gdf_node["color"] = "black"
+                gdf_node.loc[[10, 19], "color"] = "red"
+                gdf_node.plot(
+                    ax=ax_ind, color=gdf_node["color"].values, zorder=2, markersize=200
+                )
+                gdf_edge.plot(ax=ax_ind, color="black", linewidth=4, zorder=1)
+                buff.plot(ax=ax_ind, color="gray", alpha=0.2, zorder=0)
+            else:
+                fig_ind, ax_ind = plot_graph(
+                    G,
+                    filepath=folderplot,
+                    figsize=(10, 10),
+                    buffer=True,
+                    buff_size=152,
+                    buff_color="grey",
+                    edge_color="black",
+                    edge_linewidth=4,
+                    node_color="black",
+                    node_size=200,
+                    show=False,
+                    save=False,
+                    close=False,
+                )
+            savename = folderplot + f"network_{names[idx]}.png"
+            ax_ind.set_xlim([-200, 1100])
+            ax_ind.set_ylim([-200, 1100])
+            if below:
+                gdf_node_full.plot(
+                    ax=ax_ind, color="black", zorder=0, markersize=200, alpha=0.1
+                )
+                gdf_edge_full.plot(
+                    ax=ax_ind, color="black", linewidth=4, zorder=-1, alpha=0.1
+                )
+                savename = folderplot + f"network_{names[idx]}_below.png"
+            fig_ind.savefig(savename)
+            ax_mul.scatter(
+                directness(G, 0),
+                shapely.unary_union(
+                    [G.edges[e]["geometry"].buffer(152) for e in G.edges]
+                ).area
+                / max_coverage,
+                label=names[idx],
             )
-        ax_ind.set_xlim([-200, 1100])
-        ax_ind.set_ylim([-200, 1100])
-        fig_ind.savefig(folderplot + f"network_{names[idx]}.png")
-        ax_mul.scatter(
-            directness(G, 0),
-            shapely.unary_union(
-                [G.edges[e]["geometry"].buffer(152) for e in G.edges]
-            ).area
-            / max_coverage,
-            label=names[idx],
-        )
     ax_mul.legend()
     ax_mul.set_xlabel("Directness")
     ax_mul.set_ylabel("Coverage/Max Coverage")

@@ -3,16 +3,14 @@ Script to plot as a scatterplot the Area Under Curve for the Coverage versus the
 """
 
 import os
-import json
 import pandas as pd
 from utg import utils
-from orderbike import plot
 
 if __name__ == "__main__":
     for graph in [
-        # "grid",
+        "grid",
         # "grid_with_diagonal",
-        "radio_concentric",
+        # "radio_concentric",
         # "three_bridges",
         # "grid_2",
     ]:
@@ -22,19 +20,19 @@ if __name__ == "__main__":
             BUILT = False
         folderoots = f"./data/processed/ignored_files/paper/{graph}"
         G = utils.load_graph(folderoots + "/graph.graphml")
-        plot.plot_graph(
-            G,
-            filepath=folderoots + "/picture.png",
-            figsize=(10, 10),
-            buffer=False,
-            edge_color="black",
-            edge_linewidth=4,
-            node_color="black",
-            node_size=200,
-            show=False,
-            save=True,
-            close=True,
-        )
+        # plot.plot_graph(
+        #     G,
+        #     filepath=folderoots + "/picture.png",
+        #     figsize=(10, 10),
+        #     buffer=False,
+        #     edge_color="black",
+        #     edge_linewidth=4,
+        #     node_color="black",
+        #     node_size=200,
+        #     show=False,
+        #     save=True,
+        #     close=True,
+        # )
         df_growth = pd.read_json(str(folderoots) + "/auc_table_growth.json")
         plot_growth_folder = folderoots + "/plot_selected_growth"
         if not os.path.exists(plot_growth_folder):
@@ -76,42 +74,43 @@ if __name__ == "__main__":
                 add = ""
             # PAD = paddings[ids]
             metric, order, trialnum = df_growth.loc[idx].values[:3]
-            with open(
-                folderoots
-                + f"/{metric}_{order}_connected"
-                + add
-                + f"/order_growth_{trialnum:0{PAD}}.json"
-            ) as f:
-                order_growth = json.load(f)
-            order_growth = [tuple(val) for val in order_growth]
-            with open(
-                folderoots
-                + f"/{metric}_{order}_connected"
-                + add
-                + f"/metrics_growth_{trialnum:0{PAD}}.json"
-            ) as f:
-                metrics_dict = json.load(f)
-            foldergrowth = (
-                plot_growth_folder
-                + f"/{metric}_{order}_trial_{trialnum:0{PAD}}_{why}_growth_visual"
-            )
-            if not os.path.exists(foldergrowth):
-                os.makedirs(foldergrowth)
-            plot.plot_growth(
-                G,
-                order_growth,
-                foldergrowth,
-                figsize=(10, 10),
-                built=BUILT,
-                color_built="black",
-                color_added="black",
-                color_newest="black",
-                buffer=False,
-                plot_metrics=False,
-                edge_linewidth=4,
-                node_color="black",
-                node_size=200,
-            )
+            print(metric, order, trialnum, why)
+            # with open(
+            #     folderoots
+            #     + f"/{metric}_{order}_connected"
+            #     + add
+            #     + f"/order_growth_{trialnum:0{PAD}}.json"
+            # ) as f:
+            #     order_growth = json.load(f)
+            # order_growth = [tuple(val) for val in order_growth]
+            # with open(
+            #     folderoots
+            #     + f"/{metric}_{order}_connected"
+            #     + add
+            #     + f"/metrics_growth_{trialnum:0{PAD}}.json"
+            # ) as f:
+            #     metrics_dict = json.load(f)
+            # foldergrowth = (
+            #     plot_growth_folder
+            #     + f"/{metric}_{order}_trial_{trialnum:0{PAD}}_{why}_growth_visual"
+            # )
+            # if not os.path.exists(foldergrowth):
+            #     os.makedirs(foldergrowth)
+            # plot.plot_growth(
+            #     G,
+            #     order_growth,
+            #     foldergrowth,
+            #     figsize=(10, 10),
+            #     built=BUILT,
+            #     color_built="black",
+            #     color_added="black",
+            #     color_newest="black",
+            #     buffer=False,
+            #     plot_metrics=False,
+            #     edge_linewidth=4,
+            #     node_color="black",
+            #     node_size=200,
+            # )
             # plot.make_growth_video(
             #     foldergrowth, foldergrowth + "/growth_video.mp4", fps=3
             #     )

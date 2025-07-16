@@ -146,7 +146,7 @@ def plot_graph(
     if bbox is not None:
         ax.set_ylim(bbox[0], bbox[1])
         ax.set_xlim(bbox[2], bbox[3])
-    geom_node = [shapely.Point(x, y) for y, x in get_node_positions(G)]
+    geom_node = [shapely.Point(x, y) for x, y in get_node_positions(G)]
     geom_edge = list(nx.get_edge_attributes(G, "geometry").values())
     if isinstance(edge_color, dict):
         edgeidx = [edge for edge in G.edges]

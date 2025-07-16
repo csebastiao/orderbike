@@ -57,13 +57,15 @@ if __name__ == "__main__":
                     auc_cov = auc_from_metrics_dict(
                         met_dict,
                         "coverage",
-                        zero_yaxis=False,
+                        normalize_y=True,
+                        yaxis_method="natural",
                         exp_discounting=exp_disc,
                     )
                     auc_dir = auc_from_metrics_dict(
                         met_dict,
                         "directness",
                         normalize_y=False,
+                        max_comparison_y="one",
                         exp_discounting=exp_disc,
                     )
                     auc_reldir = auc_from_metrics_dict(

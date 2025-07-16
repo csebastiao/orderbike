@@ -86,7 +86,7 @@ if __name__ == "__main__":
         df_growth = pd.read_json(savename)
         for order in [
             "additive",
-            # "subtractive",
+            "subtractive",
         ]:
             med_dict = {}
             fig, axs = plt.subplots(
