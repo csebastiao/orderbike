@@ -338,14 +338,46 @@ def upfunc_growth_overall_directness(
     }
 
 
-def directness(G, edge):
-    """Get directness of the graph G. Works with growth.dynamic_growth."""
+def growth_directness(G, edge):
+    """Get directness of the graph G, works with growth.dynamic_growth."""
     mat = get_directness_matrix(G)
     # Mean directness on all non-null value, a null value means in different components or same node
     return np.sum(mat) / np.count_nonzero(mat)
 
 
+def directness(G):
+    """Get directness of the graph G."""
+    mat = get_directness_matrix(G)
+    # Mean directness on all non-null value, a null value means in different components or same node
+    return np.sum(mat) / np.count_nonzero(mat)
+
+
+def global_efficiency(G, weight="length"):
+    """Get the global efficiency of the graph G if the distance $l_{ij}$ is the network path length $d_G(i,j)$."""
+    if len(G.edges) == 0:  # For local efficiency since ego graph can be isolated nodes
+        return 0
+    else:
+        em = get_euclidean_distance_matrix(G, lonlat=False)
+        em_vals = em[np.triu_indices(em.shape[0], k=1)]
+        sm = get_shortest_network_path_length_matrix(G, weight=weight)
+        sm_vals = sm[np.triu_indices(sm.shape[0], k=1)]
+        return sum(1 / sm_vals) / sum(1 / em_vals)
+
+
+def local_efficiency(G, weight="length", center=False):
+    """Get the local efficiency of the graph G if the distance $l_{ij}$ is the network path length $d_G(i,j)$. Original definition of efficiency is for center=False."""
+    return (1 / len(G.nodes)) * sum(
+        [
+            global_efficiency(
+                nx.ego_graph(G, n, radius=1, center=center), weight=weight
+            )
+            for n in G.nodes
+        ]
+    )
+
+
 def sm_from_spm(G, spm, weight="length"):
+    """Get the shortest network path length for each shortest network path."""
     return [[nx.path_weight(G, path, weight=weight) for path in arr] for arr in spm]
 
 

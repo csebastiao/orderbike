@@ -201,7 +201,7 @@ def _metric_dictionaries():
         "update_func": None,
     }
     metrics_dict["directness"] = {
-        "metric_func": metrics.directness,
+        "metric_func": metrics.growth_directness,
         "precomp_func": None,
         "update_func": None,
     }
