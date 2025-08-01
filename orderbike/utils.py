@@ -10,7 +10,7 @@ import logging
 import numpy as np
 from haversine import haversine, haversine_vector
 from networkx import Graph, set_edge_attributes
-from osmnx import get_undirected
+from osmnx import to_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
 import os
@@ -170,7 +170,7 @@ def multidigraph_to_graph(G):
     if "osmid" not in list(G.edges(data=True))[0][2].keys():
         set_edge_attributes(G, 0, "osmid")
     # Use osmnx function that keep all edges that have different geometries
-    G = get_undirected(G)
+    G = to_undirected(G)
     # Put list of node as independent variable to make changes on the graph in the loop
     initial_node_list = list(G.nodes())
     for node in initial_node_list:
