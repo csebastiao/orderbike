@@ -1,4 +1,46 @@
 [build-system]
-# XXX: If your project needs other packages to build properly, add them to this list.
-requires = ["setuptools >= 64"]
+requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "orderbike"
+version="0.1.0"
+authors = [
+    { name = "Clément Sebastiao", email = "clse@itu.dk" },
+]
+maintainers = [{ name = "contributors" }]
+license = { text = "AGPL-3.0" }
+description = "Order the construction of a spatial network."
+keywords = ["spatial network", "network growth"]
+readme = { text = """\
+It is built on top of `GeoPandas`_ and `networkX`_.
+
+.. _GeoPandas: http://geopandas.org
+.. _networkX : http://networkx.github.io
+""", content-type = "text/x-rst" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pre-commit>=3.6.2",
+    "pytest>=8.0.2",
+    "osmnx>=1.9.1",
+    "tqdm>=4.66.2",
+    "ipykernel>=6.29.3",
+    "haversine>=2.8.1",
+    "opencv>=4.9.0",
+    "momepy>=0.7.0",
+    "python-igraph>=0.11.8",
+    "UrbanToyGraph",
+]
+
+[project.urls]
+Homepage = "https://github.com/csebastiao/orderbike"
+
+[tool.setuptools.packages.find]
+include = ["orderbike", "orderbike.*"]

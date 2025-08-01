@@ -12,6 +12,11 @@ import shapely
 from . import metrics
 from .utils import log
 
+__all__ = [
+    "order_ranked_network_growth",
+    "order_dynamic_network_growth",
+]
+
 
 def order_ranked_network_growth(
     G,

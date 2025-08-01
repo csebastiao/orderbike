@@ -15,6 +15,12 @@ import seaborn as sns
 
 from .utils import get_node_positions
 
+__all__ = [
+    "plot_graph",
+    "plot_growth",
+    "make_growth_video",
+]
+
 
 def plot_adaptative_coverage(
     G,

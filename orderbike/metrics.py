@@ -15,6 +15,13 @@ import osmnx as ox
 
 from .utils import get_node_positions, dist_vector, log, get_node_dict
 
+__all__ = [
+    "directness",
+    "global_efficiency",
+    "local_efficiency",
+    "coverage",
+]
+
 
 def growth_random(G):
     """Return a list of all edges of G in a random order."""
@@ -40,6 +47,11 @@ def growth_closeness(G, weight="length"):
         [key, val]
         for key, val in sorted(eclo.items(), key=lambda x: x[1], reverse=True)
     ]
+
+
+def coverage(G, buff_size):
+    gdf = ox.graph_to_gdfs(G, nodes=False, edges=True)
+    return gdf.geometry.buffer(buff_size).union_all().area
 
 
 # TODO Add if order is additive an update argument to stop looking when maximum buffer size is reached to optimize

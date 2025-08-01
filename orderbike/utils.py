@@ -28,6 +28,13 @@ logging.basicConfig(
 log = logging.getLogger()
 
 
+__all__ = [
+    "get_auc",
+    "multidigraph_to_graph",
+    "add_edge_attr_from_dict",
+]
+
+
 def get_auc(
     xx,
     yy,
