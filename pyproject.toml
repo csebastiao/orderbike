@@ -36,7 +36,8 @@ dependencies = [
     "opencv-python>=4.9.0",
     "momepy>=0.7.0",
     "python-igraph>=0.11.8",
-    "pip",
+    "scipy>=1.16.1",
+    "scikit-learn>=1.7.1",
     "UrbanToyGraph",
 ]
 
