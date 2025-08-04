@@ -10,7 +10,7 @@ import logging
 import numpy as np
 from haversine import haversine, haversine_vector
 from networkx import Graph, set_edge_attributes
-from osmnx import to_undirected
+from osmnx.convert import to_undirected
 from shapely.geometry import LineString
 from sklearn.metrics import auc
 import os

@@ -10,8 +10,6 @@ import geopandas as gpd
 from matplotlib import pyplot as plt
 import networkx as nx
 import shapely
-import seaborn as sns
-# TODO remove seaborn dependency
 
 from .utils import get_node_positions
 
@@ -255,7 +253,7 @@ def plot_growth(
             a.set_xlim(0, max(growth_xx) * 1.1)
             pad = (max(met) - min(met)) * 0.1
             a.set_ylim(min(met) - pad, max(met) + pad)
-            sns.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a, marker="o")
+            plt.lineplot(x=[growth_xx[0]], y=[met[0]], ax=a, marker="o")
     else:
         fig, ax = _init_fig(ax=None, figsize=figsize)
     fig, ax = plot_graph(
@@ -341,14 +339,14 @@ def plot_growth(
                 a.set_xlim(0, max(growth_xx) * 1.1)
                 pad = (max(met) - min(met)) * 0.1
                 a.set_ylim(min(met) - pad, max(met) + pad)
-                sns.lineplot(x=growth_xx[: ids + 2], y=met[: ids + 2], ax=a, marker="o")
+                plt.lineplot(x=growth_xx[: ids + 2], y=met[: ids + 2], ax=a, marker="o")
             plt.tight_layout()
         _show_save_close(
             fig,
             show=False,
             save=True,
             close=True,
-            filepath=folder_name + f"/step_{ids+1:0{pad_name}}.png",
+            filepath=folder_name + f"/step_{ids + 1:0{pad_name}}.png",
             dpi=dpi,
         )
         old_edge = edge
@@ -357,7 +355,7 @@ def plot_growth(
 def plot_order_growth(
     G,
     growth_steps,
-    cmap=sns.color_palette("crest", as_cmap=True),
+    cmap=plt.get_cmap(name="viridis"),
     figsize=(16, 9),
     show=True,
     save=False,
