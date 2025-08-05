@@ -271,7 +271,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
     length_lcc = []
     fsm = metrics.get_shortest_network_path_length_matrix(G)
     coverage.append(shapely.ops.unary_union(geom).area)
-    directness.append(metrics.directness(G_actual, 1))
+    directness.append(metrics.directness(G_actual))
     ids_to_delete = [ids for ids, node in enumerate(G.nodes) if node not in G_actual]
     fsmt = np.delete(np.delete(fsm, ids_to_delete, 0), ids_to_delete, 1)
     mat = metrics._avoid_zerodiv_matrix(
@@ -295,7 +295,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
         G_actual = G.edge_subgraph(actual_edges)
         geom.append(G.edges[edge]["geometry"].buffer(buff_size))
         coverage.append(shapely.ops.unary_union(geom).area)
-        directness.append(metrics.directness(G_actual, 1))
+        directness.append(metrics.directness(G_actual))
         ids_to_delete = [
             ids for ids, node in enumerate(G.nodes) if node not in G_actual
         ]
