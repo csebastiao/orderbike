@@ -33,7 +33,6 @@ dependencies = [
     "tqdm>=4.66.2",
     "ipykernel>=6.29.3",
     "haversine>=2.8.1",
-    "opencv-python>=4.9.0",
     "momepy>=0.7.0",
     "python-igraph>=0.11.8",
     "scipy>=1.16.0",

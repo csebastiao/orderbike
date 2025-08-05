@@ -3,9 +3,6 @@
 Functions to visualize results of the growth of a graph.
 """
 
-import os
-
-import cv2
 import geopandas as gpd
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -16,7 +13,6 @@ from .utils import get_node_positions
 __all__ = [
     "plot_graph",
     "plot_growth",
-    "make_growth_video",
 ]
 
 
@@ -385,20 +381,3 @@ def _init_graph(G, growth_steps, built=True):
     else:
         init_edges = [edge for edge in G.edges if edge not in growth_steps]
     return G.edge_subgraph(init_edges)
-
-
-def make_growth_video(img_folder_name, video_name, fps=5):
-    """
-    From a folder of ordered images make a video.
-    """
-    images = [img for img in os.listdir(img_folder_name) if img.endswith(".png")]
-    images.sort()
-    # dimensions between images need to be constant
-    frame = cv2.imread(os.path.join(img_folder_name, images[0]))
-    height, width, layers = frame.shape
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    video = cv2.VideoWriter(video_name, fourcc, fps, (width, height))
-    for image in images:
-        video.write(cv2.imread(os.path.join(img_folder_name, image)))
-    cv2.destroyAllWindows()
-    video.release()

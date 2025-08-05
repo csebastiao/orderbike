@@ -15,4 +15,3 @@ dependencies:
   - pip
   - pip:
       - urbantoygraph
-      - opencv-python>=4.9.0
