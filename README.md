@@ -7,6 +7,10 @@
 
 OrderBike aims to find an optimal order of construction for a bicycle network plan. Optimality is based on the political or moral choice of what aspect to prioritize in the growth strategy. This choice needs to be translated into a network metric.
 
+This source code has been used in the scientific paper [*The Trade-Off between Directness and Coverage in Transport Network Growth*](https://arxiv.org/abs/2507.13005) by Clément Sebastiao, Anastassia Vybornova, Ane Rahbek Vierø, Luca Maria Aiello, and Michael Szell.
+
+**Preprint**: [arXiv:2507.13005](https://arxiv.org/abs/2507.13005)  
+
 ## Bikeplanpic
 
 The `Bikeplanpic` folder contains a non-exhaustive list of images of bicycle network plans of varying precision, from actual plan to rough vision. The `0_Metadata.md` file list related information. Whenever the word "datascreen" is used instead of "picture" in the name of an image, it means that the image was apparently made using a GIS software, so a closed or open shapefile should exist. This folder serves as an inspiration for what bicycle network plans look like "in the wild", in both their final form and in their envisaged evolution, with a diversity of sizes, topographies, etc.
@@ -79,3 +83,10 @@ def rankingname(G, keyword_arg=0):
 ```
 
 The `rankingname` function needs to return a list of edges in descending order.
+
+## Credits
+
+Please cite as: 
+>C. Sebastiao, A. Vybornova, A.R. Vierø, L.M. Aiello, M. Szell. The Trade-Off between Directness and Coverage in Transport Network Growth. arXiv preprint arXiv:2507.13005 (2025)
+
+Development of OrderBike was supported by the Horizon Europe grant JUST STREETS (Grant agreement ID: 101104240).
