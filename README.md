@@ -5,14 +5,17 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![GitHub License](https://img.shields.io/github/license/csebastiao/orderbike)](https://github.com/csebastiao/orderbike/blob/main/LICENSE)
 
-OrderBike is a project where the aim is to find an optimal order of construction for a bicycle network plan. What is optimal is based on what you want to prioritize in your strategy as the final network is fixed. What to prioritize is a moral and political choice that need to be translated into a network metric.
+OrderBike aims to find an optimal order of construction for a bicycle network plan. Optimality is based on the political or moral choice of what aspect to prioritize in the growth strategy. This choice needs to be translated into a network metric.
+
+This source code has been used in the scientific paper [*The Trade-Off between Directness and Coverage in Transport Network Growth*](https://arxiv.org/abs/2507.13005) by Clément Sebastiao, Anastassia Vybornova, Ane Rahbek Vierø, Luca Maria Aiello, and Michael Szell.
+
+**Preprint**: [arXiv:2507.13005](https://arxiv.org/abs/2507.13005)  
 
 ## Bikeplanpic
 
-On the `Bikeplanpic` folder, you will find a non-exhaustive list of images of bicycle network plan of various precision, actually planned or not. The `0_Metadata.md` file list the related informations. Whenever the word datascreen is used instead of picture in the name of an image, it means that the image was apparently made using a GIS software, so a closed or open shapefile should exist.
-This folder serves as an inspiration database to see what bicycle network plan look like, in their final form, and in the imagined evolution of them, with a diversity of size, means, topography...
+The `Bikeplanpic` folder contains a non-exhaustive list of images of bicycle network plans of varying precision, from actual plan to rough vision. The `0_Metadata.md` file list related information. Whenever the word "datascreen" is used instead of "picture" in the name of an image, it means that the image was apparently made using a GIS software, so a closed or open shapefile should exist. This folder serves as an inspiration for what bicycle network plans look like "in the wild", in both their final form and in their envisaged evolution, with a diversity of sizes, topographies, etc.
 
-To find examples of networks, see [UrbanToyGraph](https://github.com/csebastiao/UrbanToyGraph) for toy network looking like some typical urban shapes, or [TransportationNetworks](https://github.com/bstabler/TransportationNetworks) for (more or less simplified) urban networks with Origin-Destination-pairs on them, that are usually used for car traffic engineering. Another option is to use real street network from [OpenStreetMap](https://www.openstreetmap.org) using [OSMnx](https://github.com/gboeing/osmnx).
+For examples of networks, see [UrbanToyGraph](https://github.com/csebastiao/UrbanToyGraph) for stylized urban street networks, or [TransportationNetworks](https://github.com/bstabler/TransportationNetworks) for (more or less simplified) urban networks with Origin-Destination-pairs on them that are usually used for car traffic engineering. Another option is to use real street networks from [OpenStreetMap](https://www.openstreetmap.org) using [OSMnx](https://github.com/gboeing/osmnx).
 
 ## Installation of OrderBike
 
@@ -42,9 +45,9 @@ pip install -e .
 
 ## How to use
 
-To find an order of growth, you need to define a networkx Graph object that is your bicycle network plan, with on every edge a boolean attribute named `built` to discriminate the part of the network that is already built and the one that is planned. Once you have your network, you need to choose a set of constraints on the growth, and a growth strategy. You then get an order of construction, that can be visualized and analyzed through premade functions.
+To find an order of growth, you need to define a networkx Graph object that is your bicycle network plan, where every edge has a boolean attribute named `built` to distinguish the part of the network that is already built and the one that is planned. Once you have your network ready, you need to choose a set of constraints on the growth, and a growth strategy. Orderbike then determines an order of construction that can be visualized and analyzed through premade functions.
 
-If you want to make the growth in multiple determined stages, you can simply use the growth function on the final graph after the first stage, then use the growth function on the final graph after the second stage with as built part the first stage, until reaching the last stage. If you want to optimize on different metrics based on reaching some specific values, you can either create a new dynamic metric function changing through time, or you can launch a first time the growth with the first metric on which to optimize, and relaunch it with another metric with the first N steps of the first growth order selected as built.
+To apply different growth functions in multiple predetermined stages, use one growth function on the final graph after the first stage, then use another growth function on the final graph after the second stage with the built part taken from the first stage, until reaching the last stage. To optimize on different metrics based on reaching some specific values, either create a new dynamic metric function that changes through time, or launch at start the growth with a first function, then relaunch it with another function that takes the first N steps from the first growth order marked as built.
 
 
 ## Add your own functions for the growth
@@ -67,7 +70,7 @@ def precomp_metricname(G, order="subtractive", keyword_arg=0):
   return {"keyword_arg_0": compute_something}
 ```
 
-Remember that you can put as keyword arguments everything that come through the precomputation function, that can be useful. For an example using everything, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`. If you don't need a precomputation function, the `**kwargs` given to the growth function will be given to the metric function instead. The `metricname` function need to return a single value, being the value of the metric for the step with this specific edge removal/addition. It needs to be something where the maximum value is pointing to the optimal choice. So if the actual metric is a monotonic function of the number of step like coverage, you need to make a difference betweeen subtractive and additive order in the growth function based on that metric (see `orderbike.metrics.growth_coverage`).
+You can put as keyword arguments everything that is processed by the precomputation function. For an example using everything, see `orderbike.metrics.growth_coverage` and `orderbike.metrics.precomp_growth_coverage`. If you don't need a precomputation function, the `**kwargs` provided to the growth function will be provided to the metric function instead. The `metricname` function needs to return a single value, being the value of the metric for the step with this specific edge removal/addition. It needs to be something where the maximum value is pointing to the optimal choice. So if the actual metric is a monotonic function in the number of steps, like coverage, you need to make a difference betweeen subtractive and additive order in the growth function based on that metric (see `orderbike.metrics.growth_coverage`).
 
 ### Ranking function
 To add a ranking metric, you need to respect the following template:
@@ -79,4 +82,11 @@ def rankingname(G, keyword_arg=0):
   return rank
 ```
 
-The `rankingname` function need to return a list of edges in descending order.
+The `rankingname` function needs to return a list of edges in descending order.
+
+## Credits
+
+Please cite as: 
+>C. Sebastiao, A. Vybornova, A.R. Vierø, L.M. Aiello, M. Szell. The Trade-Off between Directness and Coverage in Transport Network Growth. arXiv preprint arXiv:2507.13005 (2025)
+
+Development of OrderBike was supported by the Horizon Europe grant JUST STREETS (Grant agreement ID: 101104240).
