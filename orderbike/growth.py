@@ -166,7 +166,7 @@ def order_dynamic_network_growth(
         for edge in valid_edges:
             H = _update_tested_graph(G_actual, G, edge, order)
             temp_m = metric_func(H, edge, **precomp_kwargs)
-            metric_vals.append(temp_m)
+            metric_vals.append(round(temp_m, 6))
         # Choose the edge that gives the maximum value for the metric
         step = _find_optimal_edge(metric_vals, valid_edges)
         log.debug(f"Step {i}: optimal edge chosen is {step}.")

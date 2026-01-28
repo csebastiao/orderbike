@@ -3,7 +3,6 @@
 Script to compute the Area Under the Curve of all metrics for all strategies on all graph.
 """
 
-
 import pandas as pd
 import pathlib
 import json
@@ -12,9 +11,9 @@ from orderbike.utils import auc_from_metrics_dict
 
 if __name__ == "__main__":
     for graphname in [
-        # "grid",
+        "grid",
         # "grid_2",
-        "radio_concentric",
+        # "radio_concentric",
         # "grid_with_diagonal",
         # "three_bridges",
     ]:
