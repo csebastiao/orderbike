@@ -37,15 +37,16 @@ if __name__ == "__main__":
     ranking_func["closeness"] = metrics.growth_closeness
     ranking_func["betweenness"] = metrics.growth_betweenness
     streets = gpd.read_file(
-        "./data/processed/ignored_files/paper/smrainet/idf_metro.gpkg"
+        "./data/processed/ignored_files/paper/smurbnet/rome_simplified_edges.gpkg"
     )
     streets = streets.loc[streets.geometry.type == "LineString"]
     streets = streets.to_crs(streets.estimate_utm_crs())
     G = momepy.gdf_to_nx(streets, approach="primal", integer_labels=True)
     for e in G.edges:
         G.edges[e]["length"] = G.edges[e]["geometry"].length
-    graph_name = "smrainet"
-    BUFF_SIZE = 500
+    graph_name = "smurbnet"
+    BUFF_SIZE = 1.5 * streets.geometry.length.median()
+    print("Buffer size is:", BUFF_SIZE)
     NUM_TRIAL = 50
     NUM_RAND_TRIAL = 1000
     PAD = max(len(str(NUM_RAND_TRIAL - 1)), len(str(NUM_RAND_TRIAL - 1)))

@@ -11,12 +11,14 @@ import shapely
 import igraph as ig
 import scipy
 from haversine import haversine
-import osmnx as ox
+import momepy as mp
+import warnings
 
 from .utils import get_node_positions, dist_vector, log, get_node_dict
 
 __all__ = [
     "directness",
+    "directness_alt",
     "global_efficiency",
     "local_efficiency",
     "coverage",
@@ -50,7 +52,9 @@ def growth_closeness(G, weight="length"):
 
 
 def coverage(G, buff_size):
-    gdf = ox.graph_to_gdfs(G, nodes=False, edges=True)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        gdf = mp.nx_to_gdf(G, points=False, lines=True)
     return gdf.geometry.buffer(buff_size).union_all().area
 
 
@@ -89,9 +93,11 @@ def growth_coverage(
 
 def prefunc_growth_coverage(G_actual, G_final, order, buff_size=200):
     """Pre-compute the dictionary of buffered geometries of the edges and the actual area for the coverage growth optimization."""
-    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        gdf = mp.nx_to_gdf(G_actual, points=False, lines=True)
+        gdf.index = list(G_actual.edges)
     geom = gdf.geometry.buffer(buff_size)
-    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
     max_area = gdf.geometry.buffer(buff_size).union_all().area
     return {
         "pregraph": G_actual,
@@ -151,7 +157,9 @@ def prefunc_growth_adaptive_coverage(
     elif order == "subtractive":
         buff_size = min_buff
     log.info(f"Starting buffer size for {order} adapative coverage is {buff_size}.")
-    gdf = ox.graph_to_gdfs(G_actual, nodes=False, edges=True)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        gdf = mp.nx_to_gdf(G_actual, points=False, lines=True)
     geom = gdf.geometry.buffer(buff_size)
     return {
         "pregraph": G_actual,
@@ -350,11 +358,34 @@ def upfunc_growth_overall_directness(
     }
 
 
-def growth_directness(G, edge):
+def relative_directness(G_current, G_final, weight="length"):
+    """Get relative directness of the graph G_current compared to G_final. G_current needs to be an edge subgraph of G_final!"""
+    mat = _avoid_zerodiv_matrix(
+        get_shortest_network_path_length_matrix(G_final, weight=weight),
+        get_shortest_network_path_length_matrix(G_current, weight=weight),
+    )
+    return np.sum(mat) / np.count_nonzero(mat)
+
+
+def growth_directness(G, edge, **kwargs):
     """Get directness of the graph G, works with growth.dynamic_growth."""
-    mat = get_directness_matrix(G)
+    mat = get_directness_matrix(G, **kwargs)
     # Mean directness on all non-null value, a null value means in different components or same node
     return np.sum(mat) / np.count_nonzero(mat)
+
+
+def growth_directness_alt(G, edge, **kwargs):
+    """Get alternative directness (impossible path are counted) of the graph G, works with growth.dynamic_growth."""
+    mat = get_directness_matrix(G, **kwargs)
+    # Mean directness on all non-null value, a null value means in different components or same node
+    return np.sum(mat) / (np.size(mat) - max(np.shape(mat)))
+
+
+def directness_alt(G):
+    """Get alternative directness (impossible path are counted) of the graph G."""
+    mat = get_directness_matrix(G)
+    # Mean directness on all non-null value, a null value means in different components or same node
+    return np.sum(mat) / (np.size(mat) - max(np.shape(mat)))
 
 
 def directness(G):

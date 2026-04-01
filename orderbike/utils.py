@@ -44,6 +44,7 @@ def get_auc(
     yaxis_method="bottom",
     exp_discounting=True,
     exp_gap=10,
+    normalize_max_auc=True,
 ):
     """Get area under the curve to compare the efficiency of a curve"""
     if normalize_x:
@@ -72,7 +73,9 @@ def get_auc(
         exp_disc = np.exp(-xx * np.log(exp_gap))
         yy *= exp_disc
         optimal_yy *= exp_disc
-    return auc(xx, yy) / auc(xx, optimal_yy)
+    if normalize_max_auc:
+        return auc(xx, yy) / auc(xx, optimal_yy)
+    return auc(xx, yy)
 
 
 def auc_from_metrics_dict(met_dict, met, **kwargs):

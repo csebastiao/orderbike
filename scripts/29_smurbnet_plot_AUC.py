@@ -17,7 +17,7 @@ def is_pareto_efficient(x, df, fdim, sdim):
 
 
 if __name__ == "__main__":
-    graphname = "smurbnet"
+    graphname = "smrainet"
     # Plot AUC
     with open("./scripts/03_plot_params_AUC.json", "r") as f:
         plot_params = json.load(f)
@@ -109,10 +109,10 @@ if __name__ == "__main__":
                     ax.set_xlim([mmin, mmax])
                     ax.set_ylim([mmin, mmax])
                 else:
-                    ax.set_xlim([0.5, 0.9])
-                    ax.set_ylim([0.4, 0.8])
-                    # ax.set_xlim([round(dirmin - 0.05, 1), round(dirmax + 0.05, 1)])
-                    # ax.set_ylim([round(covmin - 0.05, 1), round(covmax + 0.05, 1)])
+                    # ax.set_xlim([0.5, 0.9])
+                    # ax.set_ylim([0.4, 0.8])
+                    ax.set_xlim([round(dirmin - 0.05, 1), round(dirmax + 0.05, 1)])
+                    ax.set_ylim([round(covmin - 0.05, 1), round(covmax + 0.05, 1)])
                 parfront = df_growth[mask_ord].copy()
                 parfront = parfront[
                     parfront.apply(

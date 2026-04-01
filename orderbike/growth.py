@@ -210,6 +210,11 @@ def _metric_dictionaries():
         "precomp_func": None,
         "update_func": None,
     }
+    metrics_dict["directness_alt"] = {
+        "metric_func": metrics.growth_directness_alt,
+        "precomp_func": None,
+        "update_func": None,
+    }
     metrics_dict["coverage"] = {
         "metric_func": metrics.growth_coverage,
         "precomp_func": metrics.prefunc_growth_coverage,
@@ -265,6 +270,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
     geom = [G.edges[edge]["geometry"].buffer(buff_size) for edge in G_actual.edges]
     coverage = []
     directness = []
+    directness_alt = []
     relative_directness = []
     # Should add computation of global and local efficiency to compare with GrowBike
     num_cc = []
@@ -272,6 +278,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
     fsm = metrics.get_shortest_network_path_length_matrix(G)
     coverage.append(shapely.ops.unary_union(geom).area)
     directness.append(metrics.directness(G_actual))
+    directness_alt.append(metrics.directness_alt(G_actual))
     ids_to_delete = [ids for ids, node in enumerate(G.nodes) if node not in G_actual]
     fsmt = np.delete(np.delete(fsm, ids_to_delete, 0), ids_to_delete, 1)
     mat = metrics._avoid_zerodiv_matrix(
@@ -296,6 +303,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
         geom.append(G.edges[edge]["geometry"].buffer(buff_size))
         coverage.append(shapely.ops.unary_union(geom).area)
         directness.append(metrics.directness(G_actual))
+        directness_alt.append(metrics.directness_alt(G_actual))
         ids_to_delete = [
             ids for ids, node in enumerate(G.nodes) if node not in G_actual
         ]
@@ -323,6 +331,7 @@ def compute_metrics(G, order_growth, built=False, x_meter=True, buff_size=200):
     metrics_dict["xx"] = xx
     metrics_dict["coverage"] = coverage
     metrics_dict["directness"] = directness
+    metrics_dict["directness_alt"] = directness_alt
     metrics_dict["relative_directness"] = relative_directness
     metrics_dict["num_cc"] = num_cc
     metrics_dict["length_lcc"] = length_lcc
